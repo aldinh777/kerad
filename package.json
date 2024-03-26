@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "@types/bun": "^1.0.10"
+  },
+  "dependencies": {
+    "@aldinh777/reactive": "^0.31.0",
+    "@aldinh777/toolbox": "1.4.0"
+  }
+}
