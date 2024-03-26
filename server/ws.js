@@ -1,14 +1,7 @@
-import { randomString } from '@aldinh777/toolbox/random'
 import { connectToHub } from '../lib/bun-worker-hub'
 
 const port = process.env.WEBSOCKET_PORT || 3100
-const sockets = new Map()
 const hub = connectToHub({
-    getConnectionId() {
-        const newConnectId = randomString(6)
-        sockets.set(newConnectId)
-        return newConnectId
-    },
     pushState(value, stateId, topics) {
         for (const topic of topics) {
             server.publish(topic, ['u', stateId, value].join(':'))
