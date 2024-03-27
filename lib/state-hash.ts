@@ -44,8 +44,8 @@ export function stateHash(uniqueHandler: uniqueHandler) {
         },
         unsubscribe(connectionId: string) {
             if (subscriptions.has(connectionId)) {
-                const [stateSets, unsubscribeHandlers] = subscriptions.get(connectionId)!
-                for (const state of [...stateSets]) {
+                const [stateSet, unsubscribeHandlers] = subscriptions.get(connectionId)!
+                for (const state of [...stateSet]) {
                     const [_, connections, unsubscribe] = states.get(state)!
                     connections.delete(connectionId)
                     if (connections.size === 0) {
@@ -56,6 +56,7 @@ export function stateHash(uniqueHandler: uniqueHandler) {
                 for (const unsubscribe of unsubscribeHandlers) {
                     unsubscribe()
                 }
+                stateSet.clear()
                 subscriptions.delete(connectionId)
             }
         }
