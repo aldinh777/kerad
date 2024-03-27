@@ -1,5 +1,6 @@
 const cid = document.body.getAttribute('rekt-cid')
 const socket = new WebSocket(`ws://localhost:3100/${cid}`)
+
 socket.addEventListener('message', ({ data }) => {
     const [code] = data.split(':', 1)
     if (code === 'u') {
@@ -23,3 +24,12 @@ socket.addEventListener('message', ({ data }) => {
         }
     }
 })
+
+const triggerElements = document.querySelectorAll('[rekt-t]')
+for (const elem of triggerElements) {
+    const attribs = elem.getAttribute('rekt-t')
+    for (const propPair of attribs.split(' ')) {
+        const [eventName, handlerId] = propPair.split(':')
+        elem.addEventListener(eventName, () => fetch(`/trigger?${handlerId}`))
+    }
+}

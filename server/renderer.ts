@@ -5,9 +5,7 @@ import { connectToHub } from '../lib/bun-worker-hub'
 
 const hub = connectToHub({
     renderJSX: (jsxPath, connectionId) => renderLayout(jsxPath, connectionId),
-    async triggerEvent(handlerId) {
-        handlerHash.trigger(handlerId)
-    },
+    triggerEvent: (handlerId) => handlerHash.trigger(handlerId),
     async unsubscribe(connectionId) {
         stateHash.unsubscribe(connectionId)
         handlerHash.unsubscribe(connectionId)

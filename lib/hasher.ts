@@ -60,6 +60,11 @@ export function createStateHasher(uniqueHandler: uniqueHandler) {
     }
 }
 
+export interface TriggerResult {
+    status: 'success' | 'not found'
+    data?: any
+}
+
 export function createHandlerHasher() {
     const handlers = new Map<string, () => any>()
     const subscriptions = new Map<string, string[]>()
@@ -83,12 +88,13 @@ export function createHandlerHasher() {
                 }
                 subscriptions.delete(connectionId)
             }
-            console.log({ subscriptions, handlers })
         },
-        trigger(handlerId: string) {
+        async trigger(handlerId: string): Promise<TriggerResult> {
             if (handlers.has(handlerId)) {
                 const handler = handlers.get(handlerId)
-                handler!()
+                return { status: 'success', data: handler!() }
+            } else {
+                return { status: 'not found' }
             }
         }
     }

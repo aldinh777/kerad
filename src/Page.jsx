@@ -4,6 +4,7 @@ import { randomItem } from '@aldinh777/toolbox/random'
 
 const randomName = () => randomItem(['mom', 'father', 'mama', 'bunda', 'world'])
 const randomColor = () => randomItem(['red', 'green', 'blue', 'yellow'])
+const globalCounter = state(0)
 
 export default function Page(_props, context) {
     const who = state(randomName())
@@ -27,7 +28,12 @@ export default function Page(_props, context) {
                 </h3>
             </div>
             <div>
-                <h5>Counter: {counter}</h5>
+                <h5>Global Counter: {globalCounter}</h5>
+                <button on:click={() => globalCounter(globalCounter() - 1)}>-</button>
+                <button on:click={() => globalCounter(globalCounter() + 1)}>+</button>
+            </div>
+            <div>
+                <h5>Local Counter: {counter}</h5>
                 <button on:click={() => counter(counter() - 1)}>-</button>
                 <button on:click={() => counter(counter() + 1)}>+</button>
             </div>
