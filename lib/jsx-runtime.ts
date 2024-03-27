@@ -1,3 +1,5 @@
+import type { State } from '@aldinh777/reactive'
+
 export interface RektContext {
     connectionId: string
     onMount(mountHandler: () => () => void | void): void
@@ -5,16 +7,19 @@ export interface RektContext {
 
 export interface RektProps {
     [prop: string]: any
-    children: any[]
+    children?: RektNode | RektNode[]
 }
 
 interface RektElement {
-    tag: string | Component
+    tag: string | RektComponent
     props: RektProps
 }
 
-type Component = (props: RektProps, context: RektContext) => RektElement
+export type RektNode = string | State | RektElement
+type RektComponent = (props: RektProps, context: RektContext) => RektNode | RektNode[]
 
-export function jsx(tag: string | Component, props: any): RektElement {
+export function jsx(tag: string | RektComponent, props: any): RektElement {
     return { tag, props }
 }
+
+export const Fragment: RektComponent = (props) => props.children || []

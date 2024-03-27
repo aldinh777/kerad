@@ -6,12 +6,14 @@ socket.addEventListener('message', ({ data }) => {
         const [stateId] = data.slice(2).split(':', 1)
         const value = data.slice(stateId.length + 3)
         const dynamicValues = document.querySelectorAll('rekt[s]')
-        const dynamicProps = document.querySelectorAll('[rektp]')
+        const dynamicProps = document.querySelectorAll('[rekt-p]')
         for (const elem of dynamicValues) {
-            elem.textContent = value
+            if (elem.getAttribute('s') === stateId) {
+                elem.textContent = value
+            }
         }
         for (const elem of dynamicProps) {
-            const attribs = elem.getAttribute('rektp')
+            const attribs = elem.getAttribute('rekt-p')
             for (const propPair of attribs.split(' ')) {
                 const [prop, targetId] = propPair.split(':')
                 if (targetId === stateId) {
