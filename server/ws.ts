@@ -1,15 +1,19 @@
 import { connectToHub } from '../lib/bun-worker-hub'
 
-const port = process.env.WEBSOCKET_PORT || 3100
+const port = process.env['WEBSOCKET_PORT'] || 3100
 const hub = connectToHub({
-    pushState(value, stateId, topics) {
+    async pushState(value, stateId, topics) {
         for (const topic of topics) {
             server.publish(topic, ['u', stateId, value].join(':'))
         }
     }
 })
 
-const server = Bun.serve({
+interface WebSocketData {
+    cid: string
+}
+
+const server = Bun.serve<WebSocketData>({
     port: port,
     fetch(req, server) {
         const cid = new URL(req.url).pathname.slice(1)
@@ -25,6 +29,7 @@ const server = Bun.serve({
         open(socket) {
             socket.subscribe(socket.data.cid)
         },
+        message() {},
         close(socket) {
             const { cid } = socket.data
             socket.unsubscribe(cid)

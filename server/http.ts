@@ -2,7 +2,7 @@ import { join } from 'path'
 import { connectToHub } from '../lib/bun-worker-hub'
 import { randomString } from '@aldinh777/toolbox/random'
 
-const port = process.env.HTTP_PORT || 3000
+const port = process.env['HTTP_PORT'] || 3000
 const hub = connectToHub()
 
 const server = Bun.serve({
@@ -13,7 +13,7 @@ const server = Bun.serve({
         const jsxFile = Bun.file(jsxPath)
         if (await jsxFile.exists()) {
             const connectionId = randomString(6)
-            const html = await hub.fetch('renderer', 'renderJSX', jsxPath, connectionId)
+            const html = await hub.fetch('renderer', 'renderJSX', jsxPath, connectionId) as string
             return new Response(html, { headers: { 'Content-Type': 'text/html' } })
         }
         const filename = pathname === '/' ? '/index.html' : pathname

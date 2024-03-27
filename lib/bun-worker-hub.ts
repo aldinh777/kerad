@@ -1,29 +1,39 @@
 import { connectToWorker, onConnectFromWorker, connectToMain, onConnectFromMain } from './bun-worker-connect'
 
-export function workerHub(workers) {
-    const relays = new Map()
+interface WorkerData {
+    name: string
+    worker: Worker
+    error?: (ev: ErrorEvent) => any
+}
+
+export function workerHub(workers: WorkerData[]) {
+    const relays = new Map<string, (payload: any) => Promise<any>>()
     for (const { name, worker, error } of workers) {
         relays.set(name, connectToWorker(worker))
         worker.addEventListener('error', error || ((ev) => console.error(ev.message)))
-        onConnectFromWorker(worker, ([target, method, payload]) => {
+        onConnectFromWorker<[string, string, any]>(worker, async ([target, method, payload]) => {
             const fetchWorker = relays.get(target)
             return fetchWorker?.([method, payload])
         })
     }
 }
 
-export function connectToHub(methodsObj) {
+interface MethodObjects {
+    [name: string]: (...payloads: any[]) => Promise<any>
+}
+
+export function connectToHub(methodsObj?: MethodObjects) {
     const fetchFromHub = connectToMain()
-    const methods = new Map()
+    const methods = new Map<string, (...payloads: any[]) => Promise<any>>()
     for (const name in methodsObj) {
         methods.set(name, methodsObj[name])
     }
-    onConnectFromMain(([method, payload]) => {
+    onConnectFromMain<[string, any]>(async ([method, payload]) => {
         const handler = methods.get(method)
         return handler?.(...payload)
     })
     return {
-        fetch: (name, method, ...payload) => {
+        fetch: (name: string, method: string, ...payload: any[]) => {
             return fetchFromHub([name, method, payload])
         }
     }

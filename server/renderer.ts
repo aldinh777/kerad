@@ -1,10 +1,10 @@
 import { join } from 'path'
-import { stateHash } from '../lib/state-hash'
+import { stateHash, type ComponentContext } from '../lib/state-hash'
 import { connectToHub } from '../lib/bun-worker-hub'
 
 const hub = connectToHub({
     renderJSX: (jsxPath, connectionId) => renderLayout(jsxPath, connectionId),
-    unsubscribe: (connectionId) => hasher.unsubscribe(connectionId)
+    unsubscribe: async (connectionId) => hasher.unsubscribe(connectionId)
 })
 const hasher = stateHash((state, id, connections) => {
     return state.onChange((val) => {
@@ -12,7 +12,11 @@ const hasher = stateHash((state, id, connections) => {
     })
 })
 
-function renderProps(props, { connectionId }) {
+interface Properties {
+    [name: string]: any
+}
+
+function renderProps(props: Properties, { connectionId }: ComponentContext) {
     const reactiveProps = []
     let strProps = ''
     for (const prop in props) {
@@ -30,7 +34,7 @@ function renderProps(props, { connectionId }) {
     return strProps
 }
 
-function renderToHTML(items, context) {
+function renderToHTML(items: any, context: ComponentContext) {
     const { connectionId } = context
     let html = ''
     for (const item of items) {
@@ -50,18 +54,18 @@ function renderToHTML(items, context) {
     return html
 }
 
-async function renderLayout(jsxPath, connectionId) {
+async function renderLayout(jsxPath: string, connectionId: string) {
     const file = Bun.file(join(import.meta.dir, '../src', 'layout.html'))
     const html = await file.text()
     const context = hasher.generateContext(connectionId)
     const jsxOutput = await renderJSX(jsxPath, context)
     return html
-        .replace('%entry%', jsxOutput)
-        .replace('%title%', process.env.APP_TITLE)
-        .replace('%connect_id%', connectionId)
+        .replace('%COMPONENT_ENTRY%', jsxOutput)
+        .replace('%APP_TITLE%', process.env['APP_TITLE'] as string)
+        .replace('%CONNECTION_ID%', connectionId)
 }
 
-async function renderJSX(src, context) {
+async function renderJSX(src: string, context: ComponentContext) {
     const component = await import(src)
     const result = component.default({}, [], context)
     return renderToHTML(result, context)
