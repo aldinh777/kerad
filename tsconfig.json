@@ -5,7 +5,7 @@
         "target": "ESNext",
         "module": "ESNext",
         "moduleDetection": "force",
-        "jsx": "react-jsxdev",
+        "jsx": "react-jsx",
         "jsxImportSource": "/home/aldinh777/projects/rekt/lib",
         "allowJs": true,
 

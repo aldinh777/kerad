@@ -1,12 +1,9 @@
 import type { State } from '@aldinh777/reactive'
 import type { Unsubscribe } from '@aldinh777/reactive/utils/subscription'
+import type { ComponentContext } from './jsx-runtime'
 import { randomString } from '@aldinh777/toolbox/random'
 
 type uniqueHandler = (state: State, id: string, connections: Set<string>) => any
-export interface ComponentContext {
-    connectionId: string
-    onMount(mountHandler: () => Unsubscribe | void): void
-}
 
 export function stateHash(uniqueHandler: uniqueHandler) {
     const states = new Map<State, [string, Set<string>, Unsubscribe]>()

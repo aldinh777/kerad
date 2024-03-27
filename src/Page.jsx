@@ -1,7 +1,7 @@
 import { state } from '@aldinh777/reactive'
 import { randomItem } from '@aldinh777/toolbox/random'
 
-export default function (_props, _children, context) {
+export default function (_props, context) {
     const randomName = () => randomItem(['mom', 'father', 'mama', 'bunda', 'world'])
     const who = state(randomName())
     const booba = [<div>one</div>, <div>two</div>, <div>three</div>]
