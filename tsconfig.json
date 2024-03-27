@@ -5,7 +5,8 @@
         "target": "ESNext",
         "module": "ESNext",
         "moduleDetection": "force",
-        "jsx": "react-jsx",
+        "jsx": "react-jsxdev",
+        "jsxImportSource": "/home/aldinh777/projects/rekt/lib",
         "allowJs": true,
 
         // Bundler mode
