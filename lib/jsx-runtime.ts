@@ -1,19 +1,19 @@
-export interface ComponentContext {
+export interface RektContext {
     connectionId: string
     onMount(mountHandler: () => () => void | void): void
 }
 
-interface ComponentProperties {
+export interface RektProps {
     [prop: string]: any
     children: any[]
 }
 
 interface RektElement {
     tag: string | Component
-    props: ComponentProperties
+    props: RektProps
 }
 
-type Component = (props: ComponentProperties, context: ComponentContext) => RektElement
+type Component = (props: RektProps, context: RektContext) => RektElement
 
 export function jsx(tag: string | Component, props: any): RektElement {
     return { tag, props }

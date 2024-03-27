@@ -1,6 +1,6 @@
 import type { State } from '@aldinh777/reactive'
 import type { Unsubscribe } from '@aldinh777/reactive/utils/subscription'
-import type { ComponentContext } from './jsx-runtime'
+import type { RektContext } from './jsx-runtime'
 import { randomString } from '@aldinh777/toolbox/random'
 
 type uniqueHandler = (state: State, id: string, connections: Set<string>) => any
@@ -28,7 +28,7 @@ export function stateHash(uniqueHandler: uniqueHandler) {
         generateContext(connectionId: string) {
             const unsubscribeHandlers: Unsubscribe[] = []
             subscriptions.set(connectionId, [new Set(), unsubscribeHandlers])
-            const context: ComponentContext = {
+            const context: RektContext = {
                 connectionId: connectionId,
                 onMount(mountHandler: () => Unsubscribe | void) {
                     const onDismount = mountHandler()
