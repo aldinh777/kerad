@@ -1,9 +1,9 @@
 {
   "devDependencies": {
-    "@types/bun": "^1.0.10"
+    "@types/bun": "^1.0.11"
   },
   "dependencies": {
-    "@aldinh777/reactive": "^0.31.0",
-    "@aldinh777/toolbox": "1.4.0"
+    "@aldinh777/reactive": "^0.31.2",
+    "@aldinh777/toolbox": "^1.4.1"
   }
 }
