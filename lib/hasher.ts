@@ -61,8 +61,9 @@ export function createStateHasher(uniqueHandler: uniqueHandler) {
 }
 
 export interface TriggerResult {
-    status: 'success' | 'not found'
+    status: 'success' | 'not found' | 'error'
     data?: any
+    error?: any
 }
 
 export function createHandlerHasher() {
@@ -92,7 +93,11 @@ export function createHandlerHasher() {
         async trigger(handlerId: string): Promise<TriggerResult> {
             if (handlers.has(handlerId)) {
                 const handler = handlers.get(handlerId)
-                return { status: 'success', data: handler!() }
+                try {
+                    return { status: 'success', data: handler!() }
+                } catch (error) {
+                    return { status: 'error', error: error }
+                }
             } else {
                 return { status: 'not found' }
             }

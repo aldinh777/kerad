@@ -12,12 +12,19 @@ const server = Bun.serve({
         const url = new URL(req.url)
         const { pathname } = url
         if (pathname === '/trigger') {
-            const trigger = (await hub.fetch('renderer', 'triggerEvent', url.search.slice(1))) as TriggerResult
+            const result = (await hub.fetch('renderer', 'triggerEvent', url.search.slice(1))) as TriggerResult
+            const { status, data, error } = result
             const jsonHeader = { 'Content-Type': 'application/json' }
-            if (trigger.status === 'not found') {
+            if (status === 'not found') {
                 return new Response(JSON.stringify({ status: 'not found' }), { status: 404, headers: jsonHeader })
+            } else if (status === 'error') {
+                const message = error instanceof Error ? error.message : error
+                return new Response(JSON.stringify({ status: 'error', error: message }), {
+                    status: 500,
+                    headers: jsonHeader
+                })
             } else {
-                return new Response(JSON.stringify({ status: 'success' }), { headers: jsonHeader })
+                return new Response(JSON.stringify({ status: 'success', data: data }), { headers: jsonHeader })
             }
         }
         const jsxPath = join(import.meta.dir, '../src', pathname, 'Page.jsx')
