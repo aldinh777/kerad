@@ -45,7 +45,7 @@ function renderProps(props: RektProps, { connectionId }: RektContext) {
     return strProps
 }
 
-export function renderToHTML(item: RektNode | RektNode[], context: RektContext): string {
+function renderToHTML(item: RektNode | RektNode[], context: RektContext): string {
     const { connectionId } = context
     if (item instanceof Array) {
         return item.map((nested) => renderToHTML(nested, context)).join('')
@@ -85,5 +85,3 @@ async function renderLayout(jsxPath: string, connectionId: string) {
         .replace('%APP_TITLE%', process.env['APP_TITLE'] as string)
         .replace('%CONNECTION_ID%', connectionId)
 }
-
-console.log('renderer is ready')
