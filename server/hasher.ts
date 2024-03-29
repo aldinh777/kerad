@@ -1,28 +1,18 @@
 import type { State } from '@aldinh777/reactive'
 import type { Unsubscribe } from '@aldinh777/reactive/utils/subscription'
 import type { RektContext, RektNode } from '../lib/jsx-runtime'
-import { randomString } from '@aldinh777/toolbox/random'
 import type { ObservedList, WatchableList } from '@aldinh777/reactive/collection/list'
+import { randomString } from '@aldinh777/toolbox/random'
+import { maplist } from '@aldinh777/reactive/collection/list/map'
 
-type UniqueStateHandler = (state: State, stateId: string, connectionSet: Set<string>) => Unsubscribe
-type UniqueListHandler = (
-    list: WatchableList<any>,
-    listId: string,
-    connectionSet: Set<string>,
-    context: RektContext
-) => ListHandlerReturn
-
-interface StoredItem {
-    id: string
-    item: RektNode | RektNode[]
-}
-interface ListHandlerReturn {
-    mappedList: ObservedList<StoredItem>
-    unsubscribe: Unsubscribe
-}
 interface UniqueHandlers {
-    state: UniqueStateHandler
-    list: UniqueListHandler
+    state: (state: State, stateId: string, connectionSet: Set<string>) => Unsubscribe
+    list: (
+        mappedList: ObservedList<StoredItem>,
+        listId: string,
+        connectionSet: Set<string>,
+        context: RektContext
+    ) => Unsubscribe
 }
 interface ConnectionSubscription {
     stateSet: Set<State>
@@ -34,6 +24,10 @@ interface SubscriptionData {
     id: string
     connectionSet: Set<string>
     unsubscribe?: Unsubscribe
+}
+interface StoredItem {
+    id: string
+    item: RektNode | RektNode[]
 }
 export interface TriggerResult {
     status: 'success' | 'not found' | 'error'
@@ -99,7 +93,10 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
             }
             const listId = randomString(6)
             const connectionSet = new Set([connectionId])
-            const { mappedList, unsubscribe } = uniqueHandlers.list(list, listId, connectionSet, context)
+            const mappedList = maplist(list, (item) => {
+                return { item, id: randomString(6) }
+            })
+            const unsubscribe = uniqueHandlers.list(mappedList, listId, connectionSet, context)
             listMap.set(list, { id: listId, connectionSet: connectionSet, unsubscribe: unsubscribe })
             mappedListMap.set(list, mappedList)
             return listId

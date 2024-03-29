@@ -2,8 +2,6 @@ import type { RektContext, RektNode, RektProps } from '../lib/jsx-runtime'
 import { join } from 'path'
 import { createHasher, md5Hash } from './hasher'
 import { connectToHub } from '../lib/bun-worker-hub'
-import { randomString } from '@aldinh777/toolbox/random'
-import { maplist } from '@aldinh777/reactive/collection/list/map'
 
 const hub = connectToHub({
     renderJSX: (jsxPath, connectionId) => renderLayout(jsxPath, connectionId),
@@ -17,10 +15,7 @@ const hasher = createHasher({
             hub.fetch('ws', 'pushState', value, stateId, [...connectionSet])
         })
     },
-    list(list, listId, connectionSet, context) {
-        const mappedList = maplist(list, (item: RektNode | RektNode[]) => {
-            return { item, id: randomString(6) }
-        })
+    list(mappedList, listId, connectionSet, context) {
         const unsubUpdate = mappedList.onUpdate((_index, { item, id }) => {
             const rendered = renderToHTML(item, context)
             hub.fetch('http', 'registerPartial', id, rendered)
@@ -40,14 +35,11 @@ const hasher = createHasher({
         const unsubDelete = mappedList.onDelete((_index, { id }) => {
             hub.fetch('ws', 'pushListDelete', id, [...connectionSet])
         })
-        return {
-            mappedList: mappedList,
-            unsubscribe() {
-                unsubUpdate()
-                unsubInsert()
-                unsubDelete()
-                mappedList.stop()
-            }
+        return () => () => {
+            unsubUpdate()
+            unsubInsert()
+            unsubDelete()
+            mappedList.stop()
         }
     }
 })
