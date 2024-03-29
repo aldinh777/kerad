@@ -104,3 +104,10 @@ export function createHandlerHasher() {
         }
     }
 }
+
+export async function md5Hash(filename: string) {
+    const hasher = new Bun.CryptoHasher('md5')
+    const file = Bun.file(filename)
+    hasher.update(await file.arrayBuffer())
+    return hasher.digest('hex')
+}

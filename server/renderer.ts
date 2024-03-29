@@ -1,6 +1,6 @@
 import type { RektContext, RektNode, RektProps } from '../lib/jsx-runtime'
 import { join } from 'path'
-import { createHandlerHasher, createStateHasher } from '../lib/hasher'
+import { createHandlerHasher, createStateHasher, md5Hash } from '../lib/hasher'
 import { connectToHub } from '../lib/bun-worker-hub'
 import { randomString } from '@aldinh777/toolbox/random'
 
@@ -80,6 +80,7 @@ function renderToHTML(item: RektNode | RektNode[], context: RektContext): string
 }
 
 async function renderJSX(src: string, context: RektContext) {
+    src += '?checksum=' + (await md5Hash(src))
     const component = await import(src)
     const result = component.default({}, context)
     return renderToHTML(result, context)
