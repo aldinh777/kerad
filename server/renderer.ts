@@ -1,25 +1,58 @@
 import type { RektContext, RektNode, RektProps } from '../lib/jsx-runtime'
 import { join } from 'path'
-import { createHandlerHasher, createStateHasher, md5Hash } from '../lib/hasher'
+import { createHasher, md5Hash } from './hasher'
 import { connectToHub } from '../lib/bun-worker-hub'
 import { randomString } from '@aldinh777/toolbox/random'
+import { maplist } from '@aldinh777/reactive/collection/list/map'
 
 const hub = connectToHub({
     renderJSX: (jsxPath, connectionId) => renderLayout(jsxPath, connectionId),
-    triggerEvent: (handlerId) => handlerHash.trigger(handlerId),
-    async unsubscribe(connectionId) {
-        stateHash.unsubscribe(connectionId)
-        handlerHash.unsubscribe(connectionId)
+    triggerEvent: (handlerId) => hasher.triggerHandler(handlerId),
+    unsubscribe: async (connectionId) => hasher.unsubscribe(connectionId)
+})
+
+const hasher = createHasher({
+    state(state, stateId, connectionSet) {
+        return state.onChange((value) => {
+            hub.fetch('ws', 'pushState', value, stateId, [...connectionSet])
+        })
+    },
+    list(list, listId, connectionSet, context) {
+        const mappedList = maplist(list, (item: RektNode | RektNode[]) => {
+            return { item, id: randomString(6) }
+        })
+        const unsubUpdate = mappedList.onUpdate((_index, { item, id }) => {
+            const rendered = renderToHTML(item, context)
+            hub.fetch('http', 'registerPartial', id, rendered)
+            hub.fetch('ws', 'pushListUpdate', id, [...connectionSet])
+        })
+        const unsubInsert = mappedList.onInsert((index, { item, id }) => {
+            const rendered = renderToHTML(item, context)
+            const isLast = index === mappedList().length - 1
+            const insertBeforeId = isLast ? listId : mappedList(index + 1).id
+            hub.fetch('http', 'registerPartial', id, rendered)
+            if (isLast) {
+                hub.fetch('ws', 'pushListInsertLast', id, insertBeforeId, [...connectionSet])
+            } else {
+                hub.fetch('ws', 'pushListInsert', id, insertBeforeId, [...connectionSet])
+            }
+        })
+        const unsubDelete = mappedList.onDelete((_index, { id }) => {
+            hub.fetch('ws', 'pushListDelete', id, [...connectionSet])
+        })
+        return {
+            mappedList: mappedList,
+            unsubscribe() {
+                unsubUpdate()
+                unsubInsert()
+                unsubDelete()
+                mappedList.stop()
+            }
+        }
     }
 })
-const stateHash = createStateHasher((state, id, connections) => {
-    return state.onChange((val) => {
-        hub.fetch('ws', 'pushState', val, id, [...connections])
-    })
-})
-const handlerHash = createHandlerHasher()
 
-function renderProps(props: RektProps, { connectionId }: RektContext) {
+function renderProps(props: RektProps, context: RektContext) {
     const reactiveProps: [prop: string, stateId: string][] = []
     const eventsProps: [event: string, handlerId: string][] = []
     let strProps = ''
@@ -29,9 +62,9 @@ function renderProps(props: RektProps, { connectionId }: RektContext) {
             continue
         } else if (prop.startsWith('on:')) {
             const eventName = prop.slice(3)
-            eventsProps.push([eventName, handlerHash.register(value, connectionId)])
+            eventsProps.push([eventName, hasher.registerHandler(value, context)])
         } else if (typeof value === 'function' && 'onChange' in value) {
-            reactiveProps.push([prop, stateHash.register(value, connectionId)])
+            reactiveProps.push([prop, hasher.registerState(value, context)])
             strProps += ` ${prop}="${value()}"`
         } else {
             strProps += ` ${prop}="${value}"`
@@ -47,19 +80,18 @@ function renderProps(props: RektProps, { connectionId }: RektContext) {
 }
 
 function renderToHTML(item: RektNode | RektNode[], context: RektContext): string {
-    const { connectionId } = context
     if (item instanceof Array) {
         return item.map((nested) => renderToHTML(nested, context)).join('')
     } else if (typeof item === 'string') {
         return item
     } else if (typeof item === 'function') {
         if ('onChange' in item) {
-            return `<rekt s="${stateHash.register(item, connectionId)}">${item()}</rekt>`
+            return `<rekt s="${hasher.registerState(item, context)}">${item()}</rekt>`
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
-            const listId = randomString(6)
+            const listId = hasher.registerList(item, context)
             return `<rekt lb="${listId}"></rekt>${item()
-                .map((value) => {
-                    const itemId = randomString(6)
+                .map((value, index) => {
+                    const itemId = hasher.getItemId(item, index)
                     return `<rekt ib="${itemId}"></rekt>${renderToHTML(value, context)}<rekt ie="${itemId}"></rekt>`
                 })
                 .join('')}<rekt le="${listId}"></rekt>`
@@ -89,7 +121,7 @@ async function renderJSX(src: string, context: RektContext) {
 async function renderLayout(jsxPath: string, connectionId: string) {
     const file = Bun.file(join(import.meta.dir, '../src', 'layout.html'))
     const html = await file.text()
-    const context = stateHash.generateContext(connectionId)
+    const context = hasher.generateContext(connectionId)
     const jsxOutput = await renderJSX(jsxPath, context)
     return html
         .replace('%COMPONENT_ENTRY%', jsxOutput)

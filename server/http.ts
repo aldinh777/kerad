@@ -1,7 +1,7 @@
 import { join } from 'path'
 import { connectToHub } from '../lib/bun-worker-hub'
 import { randomString } from '@aldinh777/toolbox/random'
-import type { TriggerResult } from '../lib/hasher'
+import type { TriggerResult } from './hasher'
 
 const port = process.env['HTTP_PORT'] || 3000
 const hub = connectToHub()
