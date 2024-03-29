@@ -1,39 +1,34 @@
 import type { RektContext, RektNode, RektProps } from '../lib/jsx-runtime'
 import { join } from 'path'
 import { createHasher, md5Hash } from './hasher'
-import { connectToHub } from '../lib/bun-worker-hub'
-
-const hub = connectToHub({
-    renderJSX: (jsxPath, connectionId) => renderLayout(jsxPath, connectionId),
-    triggerEvent: (handlerId) => hasher.triggerHandler(handlerId),
-    unsubscribe: async (connectionId) => hasher.unsubscribe(connectionId)
-})
+import { http } from './http'
+import { ws } from './ws'
 
 const hasher = createHasher({
     state(state, stateId, connectionSet) {
         return state.onChange((value) => {
-            hub.fetch('ws', 'pushStateChange', value, stateId, [...connectionSet])
+            ws.pushStateChange(value, stateId, [...connectionSet])
         })
     },
     list(mappedList, listId, connectionSet, context) {
         const unsubUpdate = mappedList.onUpdate((_index, current, prev) => {
             const rendered = renderToHTML(current.item, context)
-            hub.fetch('http', 'registerPartial', current.id, rendered)
-            hub.fetch('ws', 'pushListUpdate', current.id, prev.id, [...connectionSet])
+            http.registerPartial(current.id, rendered);
+            ws.pushListUpdate(current.id, prev.id, [...connectionSet])
         })
         const unsubInsert = mappedList.onInsert((index, { item, id: itemId }) => {
             const rendered = renderToHTML(item, context)
             const isLast = index === mappedList().length - 1
             const insertBeforeId = isLast ? listId : mappedList(index + 1).id
-            hub.fetch('http', 'registerPartial', itemId, rendered)
+            http.registerPartial(itemId, rendered)
             if (isLast) {
-                hub.fetch('ws', 'pushListInsertLast', itemId, insertBeforeId, [...connectionSet])
+                ws.pushListInsertLast(itemId, insertBeforeId, [...connectionSet])
             } else {
-                hub.fetch('ws', 'pushListInsert', itemId, insertBeforeId, [...connectionSet])
+                ws.pushListInsert(itemId, insertBeforeId, [...connectionSet])
             }
         })
         const unsubDelete = mappedList.onDelete((_index, { id: itemId }) => {
-            hub.fetch('ws', 'pushListDelete', itemId, [...connectionSet])
+            ws.pushListDelete(itemId, [...connectionSet])
         })
         return () => () => {
             unsubUpdate()
@@ -123,4 +118,10 @@ async function renderLayout(jsxPath: string, connectionId: string) {
         .replace('%COMPONENT_ENTRY%', jsxOutput)
         .replace('%APP_TITLE%', process.env['APP_TITLE'] as string)
         .replace('%CONNECTION_ID%', connectionId)
+}
+
+export const renderer = {
+    renderJSX: (jsxPath: string, connectionId: string) => renderLayout(jsxPath, connectionId),
+    triggerEvent: (handlerId: string) => hasher.triggerHandler(handlerId),
+    unsubscribe: (connectionId: string) => hasher.unsubscribe(connectionId)
 }

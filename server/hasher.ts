@@ -159,7 +159,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
         getItemId(list: WatchableList<any>, index: number) {
             return mappedListMap.get(list)!(index).id
         },
-        async triggerHandler(handlerId: string): Promise<TriggerResult> {
+        triggerHandler(handlerId: string): TriggerResult {
             if (triggerMap.has(handlerId)) {
                 const handler = triggerMap.get(handlerId)
                 try {
