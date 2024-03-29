@@ -2,9 +2,29 @@ import { connectToHub } from '../lib/bun-worker-hub'
 
 const port = process.env['WEBSOCKET_PORT'] || 3100
 const hub = connectToHub({
-    async pushState(value, stateId, topics) {
+    async pushStateChange(value, stateId, topics) {
         for (const topic of topics) {
-            server.publish(topic, ['u', stateId, value].join(':'))
+            server.publish(topic, ['c', stateId, value].join(':'))
+        }
+    },
+    async pushListUpdate(itemId, prevId, topics) {
+        for (const topic of topics) {
+            server.publish(topic, ['u', itemId, prevId].join(':'))
+        }
+    },
+    async pushListInsert(itemId, insertBeforeId, topics) {
+        for (const topic of topics) {
+            server.publish(topic, ['ib', itemId, insertBeforeId].join(':'))
+        }
+    },
+    async pushListInsertLast(itemId, insertBeforeId, topics) {
+        for (const topic of topics) {
+            server.publish(topic, ['ie', itemId, insertBeforeId].join(':'))
+        }
+    },
+    async pushListDelete(itemId, topics) {
+        for (const topic of topics) {
+            server.publish(topic, ['d', itemId].join(':'))
         }
     }
 })

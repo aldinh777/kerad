@@ -94,7 +94,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
             const listId = randomString(6)
             const connectionSet = new Set([connectionId])
             const mappedList = maplist(list, (item) => {
-                return { item, id: randomString(6) }
+                return { item: item, id: randomString(6) }
             })
             const unsubscribe = uniqueHandlers.list(mappedList, listId, connectionSet, context)
             listMap.set(list, { id: listId, connectionSet: connectionSet, unsubscribe: unsubscribe })
@@ -163,7 +163,8 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
             if (triggerMap.has(handlerId)) {
                 const handler = triggerMap.get(handlerId)
                 try {
-                    return { status: 'success', data: handler!() }
+                    const data = handler!()
+                    return { status: 'success', data: JSON.stringify(data) }
                 } catch (error) {
                     return { status: 'error', error: error }
                 }

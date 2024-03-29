@@ -42,10 +42,33 @@ export default function Page(_props, context) {
             </div>
             <h4>List Test</h4>
             <ul>
-                {maplist(nums, (num) => (
-                    <li>Number : {num}</li>
-                ))}
+                <div>
+                    {maplist(nums, (num) => (
+                        <li>{num}</li>
+                    ))}
+                </div>
             </ul>
+            <div>
+                <div>
+                    <button on:click={() => nums.push(globalCounter())}>Push {globalCounter}</button>
+                    <button on:click={() => nums.unshift(globalCounter())}>Unshift {globalCounter}</button>
+                    <button on:click={() => nums.pop()}>Pop</button>
+                    <button on:click={() => nums.shift()}>Shift</button>
+                </div>
+                <div>
+                    <button on:click={() => nums(counter(), globalCounter())}>
+                        Update at {counter} into {globalCounter}
+                    </button>
+                <div>
+                    <button on:click={() => nums.splice(counter(), 0, globalCounter())}>
+                        Insert {globalCounter} at {counter}
+                    </button>
+                </div>
+                <div>
+                    <button on:click={() => nums.splice(counter(), 1)}>Delete at {counter}</button>
+                </div>
+                </div>
+            </div>
         </>
     )
 }

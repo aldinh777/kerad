@@ -3,17 +3,32 @@ import { connectToHub } from '../lib/bun-worker-hub'
 import { randomString } from '@aldinh777/toolbox/random'
 import type { TriggerResult } from './hasher'
 
+const partialMap = new Map<string, string>()
 const port = process.env['HTTP_PORT'] || 3000
-const hub = connectToHub()
+const hub = connectToHub({
+    async registerPartial(itemId, output) {
+        partialMap.set(itemId, output)
+        setTimeout(() => partialMap.delete(itemId), 60_000)
+    }
+})
 
 const server = Bun.serve({
     port: port,
     async fetch(req) {
         const url = new URL(req.url)
         const { pathname } = url
-        if (pathname === '/trigger') {
-            const result = (await hub.fetch('renderer', 'triggerEvent', url.search.slice(1))) as TriggerResult
-            const { status, data, error } = result
+        if (pathname === '/partial') {
+            const itemId = url.search.slice(1)
+            if (partialMap.has(itemId)) {
+                const content = partialMap.get(itemId)
+                partialMap.delete(itemId)
+                return new Response(content, { headers: { 'Content-Type': 'text/html' } })
+            } else {
+                return new Response(null, { status: 404 })
+            }
+        } else if (pathname === '/trigger') {
+            const handlerId = url.search.slice(1)
+            const { status, data, error } = (await hub.fetch('renderer', 'triggerEvent', handlerId)) as TriggerResult
             const jsonHeader = { 'Content-Type': 'application/json' }
             if (status === 'not found') {
                 return new Response(JSON.stringify({ status: 'not found' }), { status: 404, headers: jsonHeader })
@@ -24,7 +39,9 @@ const server = Bun.serve({
                     headers: jsonHeader
                 })
             } else {
-                return new Response(JSON.stringify({ status: 'success', data: data }), { headers: jsonHeader })
+                return new Response(JSON.stringify({ status: 'success', data: data && JSON.parse(data) }), {
+                    headers: jsonHeader
+                })
             }
         }
         const jsxPath = join(import.meta.dir, '../src', pathname, 'Page.jsx')
