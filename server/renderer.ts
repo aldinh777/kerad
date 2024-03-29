@@ -2,6 +2,7 @@ import type { RektContext, RektNode, RektProps } from '../lib/jsx-runtime'
 import { join } from 'path'
 import { createHandlerHasher, createStateHasher } from '../lib/hasher'
 import { connectToHub } from '../lib/bun-worker-hub'
+import { randomString } from '@aldinh777/toolbox/random'
 
 const hub = connectToHub({
     renderJSX: (jsxPath, connectionId) => renderLayout(jsxPath, connectionId),
@@ -51,8 +52,18 @@ function renderToHTML(item: RektNode | RektNode[], context: RektContext): string
         return item.map((nested) => renderToHTML(nested, context)).join('')
     } else if (typeof item === 'string') {
         return item
-    } else if (typeof item === 'function' && 'onChange' in item) {
-        return `<rekt s="${stateHash.register(item, connectionId)}">${item()}</rekt>`
+    } else if (typeof item === 'function') {
+        if ('onChange' in item) {
+            return `<rekt s="${stateHash.register(item, connectionId)}">${item()}</rekt>`
+        } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
+            const listId = randomString(6)
+            return `<rekt lb="${listId}"></rekt>${item()
+                .map((value) => {
+                    const itemId = randomString(6)
+                    return `<rekt ib="${itemId}"></rekt>${renderToHTML(value, context)}<rekt ie="${itemId}"></rekt>`
+                })
+                .join('')}<rekt le="${listId}"></rekt>`
+        }
     } else if (typeof item === 'object' && 'tag' in item && 'props' in item) {
         const { tag, props } = item
         if (typeof tag === 'string') {
@@ -64,9 +75,8 @@ function renderToHTML(item: RektNode | RektNode[], context: RektContext): string
         } else {
             return renderToHTML(tag(props, context), context)
         }
-    } else {
-        return String(item)
     }
+    return String(item)
 }
 
 async function renderJSX(src: string, context: RektContext) {

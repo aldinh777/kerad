@@ -1,4 +1,5 @@
 import type { State } from '@aldinh777/reactive'
+import type { WatchableList } from '@aldinh777/reactive/collection/list'
 
 export interface RektContext {
     connectionId: string
@@ -15,7 +16,7 @@ interface RektElement {
     props: RektProps
 }
 
-export type RektNode = string | State | RektElement
+export type RektNode = string | State | WatchableList<any> | RektElement
 type RektComponent = (props: RektProps, context: RektContext) => RektNode | RektNode[]
 
 export function jsx(tag: string | RektComponent, props: any): RektElement {
