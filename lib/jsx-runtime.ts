@@ -3,8 +3,9 @@ import type { WatchableList } from '@aldinh777/reactive/collection/list'
 import type { Unsubscribe } from '@aldinh777/reactive/utils/subscription'
 
 export interface RektContext {
-    connectionId: string
+    id: string
     onMount(mountHandler: () => Unsubscribe | void): void
+    dismount(): void
 }
 
 export interface RektProps {

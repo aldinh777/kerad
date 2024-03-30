@@ -1,5 +1,4 @@
 import { join } from 'path'
-import { randomString } from '@aldinh777/toolbox/random'
 import { renderer } from './renderer'
 
 const PORT = process.env['HTTP_PORT'] || 3000
@@ -41,8 +40,7 @@ function startHttpServer() {
             const jsxPath = join(import.meta.dir, '../src', pathname, 'Page.jsx')
             const jsxFile = Bun.file(jsxPath)
             if (await jsxFile.exists()) {
-                const connectionId = randomString(6)
-                const html = await renderer.renderJSX(jsxPath, connectionId)
+                const html = await renderer.renderJSX(jsxPath)
                 return new Response(html, { headers: { 'Content-Type': 'text/html' } })
             }
             const filename = pathname === '/' ? '/index.html' : pathname

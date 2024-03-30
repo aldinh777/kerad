@@ -10,25 +10,25 @@ const hasher = createHasher({
             ws.pushStateChange(value, stateId, [...connectionSet])
         })
     },
-    list(mappedList, listId, connectionSet, context) {
-        const unsubUpdate = mappedList.onUpdate((_index, current, prev) => {
-            const rendered = renderToHTML(current.item, context)
-            http.registerPartial(current.id, rendered)
-            ws.pushListUpdate(current.id, prev.id, [...connectionSet])
-        })
-        const unsubInsert = mappedList.onInsert((index, { item, id: itemId }) => {
+    list(mappedList, listId, connectionSet) {
+        const unsubUpdate = mappedList.onUpdate((_index, { item, context }, prev) => {
             const rendered = renderToHTML(item, context)
-            const isLast = index === mappedList().length - 1
-            const insertBeforeId = isLast ? listId : mappedList(index + 1).id
-            http.registerPartial(itemId, rendered)
+            http.registerPartial(context.id, rendered)
+            ws.pushListUpdate(context.id, prev.context.id, [...connectionSet])
+        })
+        const unsubInsert = mappedList.onInsert((index, { item, context }) => {
+            const rendered = renderToHTML(item, context)
+            const isLast = index >= mappedList().length - 1
+            const insertBeforeId = isLast ? listId : mappedList(index + 1).context.id
+            http.registerPartial(context.id, rendered)
             if (isLast) {
-                ws.pushListInsertLast(itemId, insertBeforeId, [...connectionSet])
+                ws.pushListInsertLast(context.id, insertBeforeId, [...connectionSet])
             } else {
-                ws.pushListInsert(itemId, insertBeforeId, [...connectionSet])
+                ws.pushListInsert(context.id, insertBeforeId, [...connectionSet])
             }
         })
-        const unsubDelete = mappedList.onDelete((_index, { id: itemId }) => {
-            ws.pushListDelete(itemId, [...connectionSet])
+        const unsubDelete = mappedList.onDelete((_index, { context }) => {
+            ws.pushListDelete(context.id, [...connectionSet])
         })
         return () => () => {
             unsubUpdate()
@@ -78,8 +78,9 @@ function renderToHTML(item: RektNode | RektNode[], context: RektContext): string
             const listId = hasher.registerList(item, context)
             return `<rekt lb="${listId}"></rekt>${item()
                 .map((value, index) => {
-                    const itemId = hasher.getItemId(item, index)
-                    return `<rekt ib="${itemId}"></rekt>${renderToHTML(value, context)}<rekt ie="${itemId}"></rekt>`
+                    const context = hasher.getContext(item, index)
+                    const content = renderToHTML(value, context)
+                    return `<rekt ib="${context.id}"></rekt>${content}<rekt ie="${context.id}"></rekt>`
                 })
                 .join('')}<rekt le="${listId}"></rekt>`
         }
@@ -109,19 +110,19 @@ async function renderJSX(src: string, context: RektContext) {
     }
 }
 
-async function renderLayout(jsxPath: string, connectionId: string) {
+async function renderLayout(jsxPath: string) {
     const file = Bun.file(join(import.meta.dir, '../src', 'layout.html'))
     const html = await file.text()
-    const context = hasher.generateContext(connectionId)
+    const context = hasher.generateContext()
     const jsxOutput = await renderJSX(jsxPath, context)
     return html
         .replace('%COMPONENT_ENTRY%', jsxOutput)
         .replace('%APP_TITLE%', process.env['APP_TITLE'] as string)
-        .replace('%CONNECTION_ID%', connectionId)
+        .replace('%CONNECTION_ID%', context.id)
 }
 
 export const renderer = {
-    renderJSX: (jsxPath: string, connectionId: string) => renderLayout(jsxPath, connectionId),
+    renderJSX: (jsxPath: string) => renderLayout(jsxPath),
     triggerEvent: (handlerId: string) => hasher.triggerHandler(handlerId),
-    unsubscribe: (connectionId: string) => hasher.unsubscribe(connectionId)
+    unsubscribe: (contextId: string) => hasher.unsubscribe(contextId)
 }
