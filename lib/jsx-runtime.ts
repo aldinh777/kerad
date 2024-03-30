@@ -4,8 +4,10 @@ import type { Unsubscribe } from '@aldinh777/reactive/utils/subscription'
 
 export interface RektContext {
     id: string
+    connectionId: string
     onMount(mountHandler: () => Unsubscribe | void): void
-    rootParent?: RektContext
+    onDismount(dismountHandler: Unsubscribe): void
+    dismount(): void
 }
 
 export interface RektProps {

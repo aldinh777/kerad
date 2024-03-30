@@ -7,6 +7,7 @@ import { ws } from './ws'
 const hasher = createHasher({
     state(state, stateId, connectionSet) {
         return state.onChange((value) => {
+            console.log(state(), stateId)
             ws.pushStateChange(value, stateId, [...connectionSet])
         })
     },
@@ -29,13 +30,16 @@ const hasher = createHasher({
         })
         const unsubDelete = mappedList.onDelete((_index, { context }) => {
             ws.pushListDelete(context.id, [...connectionSet])
-            hasher.unsubscribe(context.id)
+            context.dismount()
         })
-        return () => () => {
+        return () => {
             unsubUpdate()
             unsubInsert()
             unsubDelete()
             mappedList.stop()
+            for (const { context } of mappedList()) {
+                context.dismount()
+            }
         }
     }
 })
@@ -69,7 +73,8 @@ function renderProps(props: RektProps, context: RektContext) {
 
 async function renderToHTML(item: RektNode | RektNode[], context: RektContext): Promise<string> {
     if (item instanceof Array) {
-        return (await Promise.all(item.map((nested) => renderToHTML(nested, context)))).join('')
+        const htmlArray = await Promise.all(item.map((nested) => renderToHTML(nested, context)))
+        return htmlArray.join('')
     } else if (typeof item === 'string') {
         return item
     } else if (typeof item === 'function') {
@@ -77,16 +82,14 @@ async function renderToHTML(item: RektNode | RektNode[], context: RektContext): 
             return `<rekt s="${hasher.registerState(item, context)}">${item()}</rekt>`
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
             const listId = hasher.registerList(item, context)
-            const childrenOutput = (
-                await Promise.all(
-                    item().map(async (value, index) => {
-                        const context = hasher.getContext(item, index)
-                        const content = await renderToHTML(value, context)
-                        return `<rekt ib="${context.id}"></rekt>${content}<rekt ie="${context.id}"></rekt>`
-                    })
-                )
-            ).join('')
-            return `<rekt lb="${listId}"></rekt>${childrenOutput}<rekt le="${listId}"></rekt>`
+            const childrenOutput = await Promise.all(
+                item().map(async (value, index) => {
+                    const context = hasher.getContext(item, index)
+                    const content = await renderToHTML(value, context)
+                    return `<rekt ib="${context.id}"></rekt>${content}<rekt ie="${context.id}"></rekt>`
+                })
+            )
+            return `<rekt lb="${listId}"></rekt>${childrenOutput.join('')}<rekt le="${listId}"></rekt>`
         }
     } else if (typeof item === 'object' && 'tag' in item && 'props' in item) {
         const { tag, props } = item

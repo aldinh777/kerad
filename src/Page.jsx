@@ -7,19 +7,21 @@ import { randomItem } from '@aldinh777/toolbox/random'
 const randomName = () => randomItem(['mom', 'father', 'mama', 'bunda', 'world'])
 const randomColor = () => randomItem(['red', 'green', 'blue', 'yellow'])
 const globalCounter = state(0)
+const st = state(1)
 
 export default function Page(_props, context) {
     const who = state(randomName())
     const color = state(randomColor())
     const styleColor = stateFrom(color)((color) => `color: ${color}`)
     const counter = state(0)
-    const nums = list([list([1, 2, 3].map(state)), list([4, 5, 6].map(state)), list([7, 8, 9].map(state))])
+    const nums = list([list([st, state(2), state(3)])])
 
     context.onMount(() => {
-        setTimeout(() => {
-            nums(0)(0)(20)
-            console.log(nums(0)(0)())
-        }, 2000)
+        // setTimeout(() => st(1254), 2000)
+        // setTimeout(() => nums(0).shift(), 4000)
+        // setTimeout(() => st(7777), 6000)
+        // setTimeout(() => nums(0).unshift(st), 8000)
+        // setTimeout(() => st(1998), 10000)
     })
 
     return (
@@ -40,7 +42,7 @@ export default function Page(_props, context) {
                 <button on:click={() => counter(counter() + 1)}>+</button>
             </div>
             <h4>List Test</h4>
-            <div>[{maplist(nums, (numnum) => maplist(numnum, (num) => num))}]</div>
+            <div>[{maplist(nums, (numnum) => maplist(numnum, (num) => stateFrom(num)((num) => num + ', ')))}]</div>
         </>
     )
 }
