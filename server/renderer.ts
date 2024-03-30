@@ -13,7 +13,7 @@ const hasher = createHasher({
     list(mappedList, listId, connectionSet, context) {
         const unsubUpdate = mappedList.onUpdate((_index, current, prev) => {
             const rendered = renderToHTML(current.item, context)
-            http.registerPartial(current.id, rendered);
+            http.registerPartial(current.id, rendered)
             ws.pushListUpdate(current.id, prev.id, [...connectionSet])
         })
         const unsubInsert = mappedList.onInsert((index, { item, id: itemId }) => {
@@ -102,7 +102,7 @@ async function renderJSX(src: string, context: RektContext) {
     src += '?checksum=' + (await md5Hash(src))
     const component = await import(src)
     try {
-        const result = component.default({}, context)
+        const result = await component.default({}, context)
         return renderToHTML(result, context)
     } catch (error) {
         return `<pre>${error instanceof Error ? error.stack : error}</pre>`
