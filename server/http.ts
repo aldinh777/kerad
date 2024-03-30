@@ -53,7 +53,7 @@ function startHttpServer() {
             return new Response('Not Found', { status: 404 })
         }
     })
-    console.log(`http server created at http://${server.hostname}:${server.port}`)
+    console.log(`http server running at http://${server.hostname}:${server.port}`)
 }
 
 export const http = {

@@ -33,7 +33,7 @@ function startWebsocketServer() {
             }
         }
     })
-    console.log(`websocket server created at http://${server.hostname}:${server.port}`)
+    console.log(`websocket server created at port ${server.port}`)
 }
 
 export const ws = {
