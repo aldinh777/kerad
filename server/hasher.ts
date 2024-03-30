@@ -38,25 +38,29 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
     const triggerMap = new Map<string, () => any>()
     const mappedListMap = new Map<WatchableList<any>, WatchableList<StoredItem>>()
     return {
-        generateContext(): RektContext {
+        generateContext(parentContext?: RektContext): RektContext {
             const contextId = randomString(6)
             const unsubscribers: Unsubscribe[] = []
-            subscriptionMap.set(contextId, {
-                stateSet: new Set(),
-                listSet: new Set(),
-                handlerSet: new Set(),
-                unsubscribers: unsubscribers
-            })
-            return {
+            const context: RektContext = {
                 id: contextId,
                 onMount(mountHandler) {
                     const onDismount = mountHandler()
                     if (onDismount) {
                         unsubscribers.push(onDismount)
                     }
-                },
-                dismount: () => this.unsubscribe(contextId)
+                }
             }
+            if (parentContext) {
+                context.rootParent = subscriptionMap.has(parentContext.id) ? parentContext : parentContext.rootParent
+            } else {
+                subscriptionMap.set(contextId, {
+                    stateSet: new Set(),
+                    listSet: new Set(),
+                    handlerSet: new Set(),
+                    unsubscribers: unsubscribers
+                })
+            }
+            return context
         },
         registerState(state: State, { id: contextId }: RektContext) {
             if (subscriptionMap.has(contextId)) {
@@ -91,7 +95,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
             const listId = randomString(6)
             const connectionSet = new Set([contextId])
             const mappedList = maplist(list, (item) => {
-                return { item: item, context: this.generateContext() }
+                return { item: item, context: this.generateContext(context) }
             })
             const unsubscribe = uniqueHandlers.list(mappedList, listId, connectionSet)
             listMap.set(list, { id: listId, connectionSet: connectionSet, unsubscribe: unsubscribe })

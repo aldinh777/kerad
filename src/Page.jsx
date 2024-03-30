@@ -13,14 +13,13 @@ export default function Page(_props, context) {
     const color = state(randomColor())
     const styleColor = stateFrom(color)((color) => `color: ${color}`)
     const counter = state(0)
-    const nums = list([1, 2, 3, 4])
+    const nums = list([list([1, 2, 3].map(state)), list([4, 5, 6].map(state)), list([7, 8, 9].map(state))])
 
     context.onMount(() => {
-        const interval = setInterval(() => {
-            who(randomName())
-            color(randomColor())
-        }, 1000)
-        return () => clearInterval(interval)
+        setTimeout(() => {
+            nums(0)(0)(20)
+            console.log(nums(0)(0)())
+        }, 2000)
     })
 
     return (
@@ -41,26 +40,7 @@ export default function Page(_props, context) {
                 <button on:click={() => counter(counter() + 1)}>+</button>
             </div>
             <h4>List Test</h4>
-            <div>[{maplist(nums, (num) => num + ', ')}]</div>
-            <div>
-                <div>
-                    <button on:click={() => nums.push(globalCounter())}>Push {globalCounter}</button>
-                    <button on:click={() => nums.pop()}>Pop</button>
-                    <button on:click={() => nums.shift()}>Shift</button>
-                    <button on:click={() => nums.unshift(globalCounter())}>Unshift {globalCounter}</button>
-                </div>
-                <div>
-                    <button on:click={() => nums(counter(), globalCounter())}>
-                        Update at {counter} into {globalCounter}
-                    </button>
-                </div>
-                <div>
-                    <button on:click={() => nums.splice(counter(), 0, globalCounter())}>
-                        Insert {globalCounter} at {counter}
-                    </button>
-                    <button on:click={() => nums.splice(counter(), 1)}>Delete at {counter}</button>
-                </div>
-            </div>
+            <div>[{maplist(nums, (numnum) => maplist(numnum, (num) => num))}]</div>
         </>
     )
 }

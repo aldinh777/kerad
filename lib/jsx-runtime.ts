@@ -5,7 +5,7 @@ import type { Unsubscribe } from '@aldinh777/reactive/utils/subscription'
 export interface RektContext {
     id: string
     onMount(mountHandler: () => Unsubscribe | void): void
-    dismount(): void
+    rootParent?: RektContext
 }
 
 export interface RektProps {
@@ -19,7 +19,7 @@ interface RektElement {
 }
 
 export type RektNode = string | State | WatchableList<any> | RektElement
-type RektComponent = (props: RektProps, context: RektContext) => RektNode | RektNode[]
+type RektComponent = (props: RektProps, context: RektContext) => Promise<RektNode | RektNode[]> | RektNode | RektNode[]
 
 export function jsx(tag: string | RektComponent, props: any): RektElement {
     return { tag, props }

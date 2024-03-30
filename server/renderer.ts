@@ -11,13 +11,13 @@ const hasher = createHasher({
         })
     },
     list(mappedList, listId, connectionSet) {
-        const unsubUpdate = mappedList.onUpdate((_index, { item, context }, prev) => {
-            const rendered = renderToHTML(item, context)
+        const unsubUpdate = mappedList.onUpdate(async (_index, { item, context }, prev) => {
+            const rendered = await renderToHTML(item, context)
             http.registerPartial(context.id, rendered)
             ws.pushListUpdate(context.id, prev.context.id, [...connectionSet])
         })
-        const unsubInsert = mappedList.onInsert((index, { item, context }) => {
-            const rendered = renderToHTML(item, context)
+        const unsubInsert = mappedList.onInsert(async (index, { item, context }) => {
+            const rendered = await renderToHTML(item, context)
             const isLast = index >= mappedList().length - 1
             const insertBeforeId = isLast ? listId : mappedList(index + 1).context.id
             http.registerPartial(context.id, rendered)
@@ -29,6 +29,7 @@ const hasher = createHasher({
         })
         const unsubDelete = mappedList.onDelete((_index, { context }) => {
             ws.pushListDelete(context.id, [...connectionSet])
+            hasher.unsubscribe(context.id)
         })
         return () => () => {
             unsubUpdate()
@@ -66,9 +67,9 @@ function renderProps(props: RektProps, context: RektContext) {
     return strProps
 }
 
-function renderToHTML(item: RektNode | RektNode[], context: RektContext): string {
+async function renderToHTML(item: RektNode | RektNode[], context: RektContext): Promise<string> {
     if (item instanceof Array) {
-        return item.map((nested) => renderToHTML(nested, context)).join('')
+        return (await Promise.all(item.map((nested) => renderToHTML(nested, context)))).join('')
     } else if (typeof item === 'string') {
         return item
     } else if (typeof item === 'function') {
@@ -76,24 +77,28 @@ function renderToHTML(item: RektNode | RektNode[], context: RektContext): string
             return `<rekt s="${hasher.registerState(item, context)}">${item()}</rekt>`
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
             const listId = hasher.registerList(item, context)
-            return `<rekt lb="${listId}"></rekt>${item()
-                .map((value, index) => {
-                    const context = hasher.getContext(item, index)
-                    const content = renderToHTML(value, context)
-                    return `<rekt ib="${context.id}"></rekt>${content}<rekt ie="${context.id}"></rekt>`
-                })
-                .join('')}<rekt le="${listId}"></rekt>`
+            const childrenOutput = (
+                await Promise.all(
+                    item().map(async (value, index) => {
+                        const context = hasher.getContext(item, index)
+                        const content = await renderToHTML(value, context)
+                        return `<rekt ib="${context.id}"></rekt>${content}<rekt ie="${context.id}"></rekt>`
+                    })
+                )
+            ).join('')
+            return `<rekt lb="${listId}"></rekt>${childrenOutput}<rekt le="${listId}"></rekt>`
         }
     } else if (typeof item === 'object' && 'tag' in item && 'props' in item) {
         const { tag, props } = item
         if (typeof tag === 'string') {
             if (props.children !== undefined) {
-                return `<${tag}${renderProps(props, context)}>${renderToHTML(props.children, context)}</${tag}>`
+                const htmlOutput = await renderToHTML(props.children, context)
+                return `<${tag}${renderProps(props, context)}>${htmlOutput}</${tag}>`
             } else {
                 return `<${tag}${renderProps(props, context)} />`
             }
         } else {
-            return renderToHTML(tag(props, context), context)
+            return await renderToHTML(await tag(props, context), context)
         }
     }
     return String(item)
