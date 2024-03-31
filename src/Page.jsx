@@ -7,14 +7,14 @@ import { randomItem } from '@aldinh777/toolbox/random'
 const randomName = () => randomItem(['mom', 'father', 'mama', 'bunda', 'world'])
 const randomColor = () => randomItem(['red', 'green', 'blue', 'yellow'])
 const globalCounter = state(0)
-const st = state(1)
+const nested = state(1)
 
 export default function Page(_props, context) {
     const who = state(randomName())
     const color = state(randomColor())
     const styleColor = stateFrom(color)((color) => `color: ${color}`)
     const counter = state(0)
-    const nums = list([list([st, state(2), state(3)])])
+    const nums = list([list([nested])])
 
     context.onMount(() => {
         // setTimeout(() => st(1254), 2000)
@@ -42,7 +42,7 @@ export default function Page(_props, context) {
                 <button on:click={() => counter(counter() + 1)}>+</button>
             </div>
             <h4>List Test</h4>
-            <div>[{maplist(nums, (numnum) => maplist(numnum, (num) => stateFrom(num)((num) => num + ', ')))}]</div>
+            <div>[{maplist(nums, (numnum) => maplist(numnum, (num) => num))}]</div>
         </>
     )
 }

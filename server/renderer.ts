@@ -7,7 +7,6 @@ import { ws } from './ws'
 const hasher = createHasher({
     state(state, stateId, connectionSet) {
         return state.onChange((value) => {
-            console.log(state(), stateId)
             ws.pushStateChange(value, stateId, [...connectionSet])
         })
     },

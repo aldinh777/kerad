@@ -9,6 +9,12 @@ interface UniqueHandlers {
     state: (state: State, stateId: string, connectionSet: Set<string>) => Unsubscribe
     list: (mappedList: ObservedList<StoredItem>, listId: string, connectionSet: Set<string>) => Unsubscribe
 }
+interface ConnectionData {
+    context: RektContext
+    stateSet: Set<State>
+    listSet: Set<WatchableList<any>>
+    handlerSet: Set<() => any>
+}
 interface SubscriptionData {
     id: string
     connectionSet: Set<string>
@@ -30,7 +36,7 @@ export interface TriggerResult {
 
 export function createHasher(uniqueHandlers: UniqueHandlers) {
     // Connection Data
-    const connectionMap = new Map<string, RektContext>()
+    const connectionMap = new Map<string, ConnectionData>()
     // State Hash
     const stateMap = new Map<State, SubscriptionData>()
     // List & Item Hash
@@ -63,7 +69,12 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
             if (parentContext) {
                 parentContext.onMount(() => () => context.dismount())
             } else {
-                connectionMap.set(contextId, context)
+                connectionMap.set(contextId, {
+                    context: context,
+                    stateSet: new Set(),
+                    listSet: new Set(),
+                    handlerSet: new Set()
+                })
             }
             return context
         },
@@ -78,22 +89,16 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
                     unsubscribe: uniqueHandlers.state(state, stateId, connectionSet)
                 })
             }
-            console.log([...stateMap.keys()].map((st) => st()))
-            const { id: stateId, connectionSet, contextSet, unsubscribe } = stateMap.get(state)!
-            console.log(state(), 'registered with id', stateId)
+            const { id: stateId, connectionSet, contextSet } = stateMap.get(state)!
             if (!contextSet.has(context.id)) {
+                if (connectionMap.has(context.connectionId)) {
+                    const { stateSet } = connectionMap.get(context.connectionId)!
+                    stateSet.add(state)
+                }
                 connectionSet.add(context.connectionId)
                 contextSet.add(context.id)
                 context.onDismount(() => {
                     contextSet.delete(context.id)
-                    if (contextSet.size === 0) {
-                        connectionSet.delete(context.connectionId)
-                        if (connectionSet.size === 0) {
-                            connectionMap.delete(context.connectionId)
-                            stateMap.delete(state)
-                            unsubscribe?.()
-                        }
-                    }
                 })
             }
             return stateId
@@ -113,20 +118,16 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
                     mappedList: mappedList
                 })
             }
-            const { id: listId, connectionSet, contextSet, unsubscribe } = listMap.get(list)!
+            const { id: listId, connectionSet, contextSet } = listMap.get(list)!
             if (!contextSet.has(context.id)) {
+                if (connectionMap.has(context.connectionId)) {
+                    const { listSet } = connectionMap.get(context.connectionId)!
+                    listSet.add(list)
+                }
                 connectionSet.add(context.connectionId)
                 contextSet.add(context.id)
                 context.onDismount(() => {
                     contextSet.delete(context.id)
-                    if (contextSet.size === 0) {
-                        connectionSet.delete(context.connectionId)
-                        if (connectionSet.size === 0) {
-                            connectionMap.delete(context.connectionId)
-                            listMap.delete(list)
-                            unsubscribe?.()
-                        }
-                    }
                 })
             }
             return listId
@@ -136,33 +137,55 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
                 const handlerId = randomString(6)
                 handlerMap.set(handler, {
                     id: handlerId,
-                    connectionSet: new Set([context.connectionId]),
-                    contextSet: new Set(context.id)
+                    connectionSet: new Set(),
+                    contextSet: new Set()
                 })
                 triggerMap.set(handlerId, handler)
             }
             const { id: handlerId, connectionSet, contextSet } = handlerMap.get(handler)!
             if (!contextSet.has(context.id)) {
+                if (connectionMap.has(context.connectionId)) {
+                    const { handlerSet } = connectionMap.get(context.connectionId)!
+                    handlerSet.add(handler)
+                }
                 connectionSet.add(context.connectionId)
                 contextSet.add(context.id)
                 context.onDismount(() => {
                     contextSet.delete(context.id)
-                    if (contextSet.size === 0) {
-                        connectionSet.delete(context.connectionId)
-                        if (connectionSet.size === 0) {
-                            connectionMap.delete(context.connectionId)
-                            handlerMap.delete(handler)
-                            triggerMap.delete(handlerId)
-                        }
-                    }
                 })
             }
             return handlerId
         },
         unsubscribe(connectionId: string) {
             if (connectionMap.has(connectionId)) {
-                const context = connectionMap.get(connectionId)!
+                const { context, stateSet, listSet, handlerSet } = connectionMap.get(connectionId)!
+                connectionMap.delete(connectionId)
                 context.dismount()
+                for (const state of [...stateSet]) {
+                    const { connectionSet, unsubscribe } = stateMap.get(state)!
+                    connectionSet.delete(connectionId)
+                    if (connectionSet.size === 0) {
+                        stateMap.delete(state)
+                        unsubscribe?.()
+                    }
+                }
+                for (const list of [...listSet]) {
+                    const { connectionSet, unsubscribe } = listMap.get(list)!
+                    connectionSet.delete(context.connectionId)
+                    if (connectionSet.size === 0) {
+                        listMap.delete(list)
+                        unsubscribe?.()
+                    }
+                }
+                for (const handler of [...handlerSet]) {
+                    const { id: handlerId, connectionSet } = handlerMap.get(handler)!
+                    connectionSet.delete(context.connectionId)
+                    if (connectionSet.size === 0) {
+                        connectionMap.delete(context.connectionId)
+                        handlerMap.delete(handler)
+                        triggerMap.delete(handlerId)
+                    }
+                }
             }
         },
         getContext(list: WatchableList<any>, index: number) {

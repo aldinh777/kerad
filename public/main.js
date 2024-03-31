@@ -31,7 +31,6 @@ socket.addEventListener('message', ({ data }) => {
     } else if (code === 'ib') {
         const [itemId] = data.slice(3).split(':', 1)
         const insertBeforeId = data.slice(itemId.length + 4)
-        console.log({ nextId: itemId, insertBeforeId })
         const target = document.querySelector(`rekt[ib="${insertBeforeId}"]`)
         fetch(`/partial?${itemId}`)
             .then((res) => res.text())
