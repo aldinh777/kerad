@@ -64,6 +64,30 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
                     for (const unsubscribe of unsubscribers.splice(0)) {
                         unsubscribe()
                     }
+                },
+                setInterval(ms, handler) {
+                    context.onMount(() => {
+                        const interval = setInterval(() => {
+                            try {
+                                handler()
+                            } catch (error) {
+                                console.error(error)
+                            }
+                        }, ms)
+                        return () => clearInterval(interval)
+                    })
+                },
+                setTimeout(ms, handler) {
+                    context.onMount(() => {
+                        const timeout = setTimeout(() => {
+                            try {
+                                handler()
+                            } catch (error) {
+                                console.error(error)
+                            }
+                        }, ms)
+                        return () => clearTimeout(timeout)
+                    })
                 }
             }
             if (parentContext) {

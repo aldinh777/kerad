@@ -17,15 +17,16 @@ export default function Page(_props, context) {
     const nums = list([list([nested])])
 
     context.onMount(() => {
-        // setTimeout(() => st(1254), 2000)
-        // setTimeout(() => nums(0).shift(), 4000)
-        // setTimeout(() => st(7777), 6000)
-        // setTimeout(() => nums(0).unshift(st), 8000)
-        // setTimeout(() => st(1998), 10000)
+        context.setTimeout(2000, () => nested(1254))
+        context.setTimeout(4000, () => nums(0).shift())
+        context.setTimeout(6000, () => nested(7777))
+        context.setTimeout(8000, () => nums(0).unshift(nested))
+        context.setTimeout(10000, () => nested(1998))
     })
 
     return (
         <>
+            <rekt-item></rekt-item>
             <div>
                 <h3>
                     Hello, <span style={styleColor}>{who}</span>!

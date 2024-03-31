@@ -8,6 +8,8 @@ export interface RektContext {
     onMount(mountHandler: () => Unsubscribe | void): void
     onDismount(dismountHandler: Unsubscribe): void
     dismount(): void
+    setTimeout(ms: number, handler: () => any): any
+    setInterval(ms: number, handler: () => any): any
 }
 
 export interface RektProps {
