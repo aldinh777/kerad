@@ -36,31 +36,27 @@ function startWebsocketServer() {
     console.log(`websocket server created at port ${server.port}`)
 }
 
+function publish(topics: Iterable<string>, ...payloads: string[]) {
+    for (const topic of topics) {
+        server?.publish(topic, [...payloads].join(':'))
+    }
+}
+
 export const ws = {
     startServer: startWebsocketServer,
-    pushStateChange(value: string, stateId: string, topics: string[]) {
-        for (const topic of topics) {
-            server.publish(topic, ['c', stateId, value].join(':'))
-        }
+    pushStateChange(topics: Iterable<string>, value: string, stateId: string) {
+        publish(topics, 'c', stateId, value)
     },
-    pushListUpdate(itemId: string, prevId: string, topics: string[]) {
-        for (const topic of topics) {
-            server.publish(topic, ['u', itemId, prevId].join(':'))
-        }
+    pushListUpdate(topics: Iterable<string>, itemId: string, prevId: string) {
+        publish(topics, 'u', itemId, prevId)
     },
-    pushListInsert(itemId: string, insertBeforeId: string, topics: string[]) {
-        for (const topic of topics) {
-            server.publish(topic, ['ib', itemId, insertBeforeId].join(':'))
-        }
+    pushListInsert(topics: Iterable<string>, itemId: string, insertBeforeId: string) {
+        publish(topics, 'u', itemId, insertBeforeId)
     },
-    pushListInsertLast(itemId: string, insertBeforeId: string, topics: string[]) {
-        for (const topic of topics) {
-            server.publish(topic, ['ie', itemId, insertBeforeId].join(':'))
-        }
+    pushListInsertLast(topics: Iterable<string>, itemId: string, insertBeforeId: string) {
+        publish(topics, 'ie', itemId, insertBeforeId)
     },
-    pushListDelete(itemId: string, topics: string[]) {
-        for (const topic of topics) {
-            server.publish(topic, ['d', itemId].join(':'))
-        }
+    pushListDelete(topics: Iterable<string>, itemId: string) {
+        publish(topics, 'd', itemId)
     }
 }

@@ -5,16 +5,16 @@ import { http } from './http'
 import { ws } from './ws'
 
 const hasher = createHasher({
-    state(state, stateId, connectionSet) {
+    state(state, stateId, connectionMap) {
         return state.onChange((value) => {
-            ws.pushStateChange(value, stateId, [...connectionSet])
+            ws.pushStateChange(connectionMap.keys(), value, stateId)
         })
     },
-    list(mappedList, listId, connectionSet) {
+    list(mappedList, listId, connectionMap) {
         const unsubUpdate = mappedList.onUpdate(async (_index, { item, context }, prev) => {
             const rendered = await renderToHTML(item, context)
             http.registerPartial(context.id, rendered)
-            ws.pushListUpdate(context.id, prev.context.id, [...connectionSet])
+            ws.pushListUpdate(connectionMap.keys(), context.id, prev.context.id)
         })
         const unsubInsert = mappedList.onInsert(async (index, { item, context }) => {
             const rendered = await renderToHTML(item, context)
@@ -22,13 +22,13 @@ const hasher = createHasher({
             const insertBeforeId = isLast ? listId : mappedList(index + 1).context.id
             http.registerPartial(context.id, rendered)
             if (isLast) {
-                ws.pushListInsertLast(context.id, insertBeforeId, [...connectionSet])
+                ws.pushListInsertLast(connectionMap.keys(), context.id, insertBeforeId)
             } else {
-                ws.pushListInsert(context.id, insertBeforeId, [...connectionSet])
+                ws.pushListInsert(connectionMap.keys(), context.id, insertBeforeId)
             }
         })
         const unsubDelete = mappedList.onDelete((_index, { context }) => {
-            ws.pushListDelete(context.id, [...connectionSet])
+            ws.pushListDelete(connectionMap.keys(), context.id)
             context.dismount()
         })
         return () => {
