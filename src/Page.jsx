@@ -26,7 +26,6 @@ export default function Page(_props, context) {
 
     return (
         <>
-            <rekt-item></rekt-item>
             <div>
                 <h3>
                     Hello, <span style={styleColor}>{who}</span>!

@@ -189,7 +189,6 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
                 contextConnectionMap.delete(connectionId)
                 context.dismount()
             }
-            console.log(contextConnectionMap.size, stateMap.size, listMap.size, handlerMap.size, triggerMap.size)
         },
         getContext(list: WatchableList<any>, index: number) {
             return listMap.get(list)!.mappedList(index).context
