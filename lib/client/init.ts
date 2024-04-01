@@ -1,6 +1,7 @@
 import type { RektComponent } from '../common/jsx-runtime'
 import { generateContext, renderDom } from './rekt-dom'
 import { destroyListItem, insertListItem, replaceListItem, select, selectAll } from './utils'
+import './hot-reload'
 
 const cid = document.body.getAttribute('rekt-cid')
 const socket = new WebSocket(`ws://localhost:3100/${cid}`)
@@ -61,10 +62,10 @@ for (const elem of selectAll('[rekt-t]')) {
 }
 
 for (const elem of selectAll('rekt[type="client"]')) {
-    const src = elem.getAttribute('src') || ''
+    const src = elem.getAttribute('src') + '.js' || ''
     const globalContext = generateContext()
-    import(src).then(async (Comp: RektComponent) => {
+    import(src).then(async (Comp: {default: RektComponent}) => {
         const componentContext = generateContext()
-        renderDom(elem, await Comp({}, componentContext), globalContext)
+        renderDom(elem, await Comp.default({}, componentContext), globalContext)
     })
 }

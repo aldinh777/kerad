@@ -48,6 +48,10 @@ function startHttpServer() {
             if (await file.exists()) {
                 return new Response(file)
             }
+            const distFile = Bun.file(join(import.meta.dir, '../../app/dist', filename))
+            if (await distFile.exists()) {
+                return new Response(distFile)
+            }
             return new Response('Not Found', { status: 404 })
         }
     })

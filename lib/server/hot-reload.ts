@@ -17,22 +17,20 @@ const server = Bun.serve({
 })
 
 declare global {
-    var watched: boolean
+    var hotReloadWatched: boolean
 }
 
-const watchDirs = ['../../app', '../../lib', '.', '../../main.ts']
+const watchDirs = ['../../app/client', '../../app/server', '../../lib', '../../main.ts']
 console.log('hot reload enabled, watching : ')
 for (const path of watchDirs) {
     const dir = join(import.meta.dir, path)
     console.log(`(+) ${relative(process.cwd(), dir)}`)
 }
 
-if (!globalThis.watched) {
+if (!globalThis.hotReloadWatched) {
     for (const path of watchDirs) {
         const dir = join(import.meta.dir, path)
-        watch(dir, () => {
-            server.publish('hr', 'r')
-        })
+        watch(dir, { recursive: true }, () => server.publish('hr', 'r'))
     }
-    globalThis.watched = true
+    globalThis.hotReloadWatched = true
 }

@@ -1,3 +1,3 @@
 export default function () {
-    return <div>Hello, anjay</div>
+    return <h3>Hello, world</h3>
 }

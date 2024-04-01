@@ -27,9 +27,7 @@ export default function Page(_props, context) {
     return (
         <>
             <div>
-                <h3>
-                    Hello, <span style={styleColor}>{who}</span>!
-                </h3>
+                <rekt type="client" src="./App"></rekt>
             </div>
             <div>
                 <h5>Global Counter: {globalCounter}</h5>
@@ -43,7 +41,6 @@ export default function Page(_props, context) {
             </div>
             <h4>List Test</h4>
             <div>[{maplist(nums, (numnum) => maplist(numnum, (num) => num))}]</div>
-            <rekt type="client" src="./App" />
         </>
     )
 }
