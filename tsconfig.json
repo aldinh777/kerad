@@ -6,7 +6,7 @@
         "module": "ESNext",
         "moduleDetection": "force",
         "jsx": "react-jsx",
-        "jsxImportSource": "/home/aldinh777/projects/rekt/lib",
+        "jsxImportSource": "/home/aldinh777/projects/rekt/lib/common",
         "allowJs": true,
 
         // Bundler mode

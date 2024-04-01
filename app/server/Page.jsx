@@ -43,6 +43,7 @@ export default function Page(_props, context) {
             </div>
             <h4>List Test</h4>
             <div>[{maplist(nums, (numnum) => maplist(numnum, (num) => num))}]</div>
+            <rekt type="client" src="./App" />
         </>
     )
 }

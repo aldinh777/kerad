@@ -1,6 +1,6 @@
 import type { State } from '@aldinh777/reactive'
 import type { Unsubscribe } from '@aldinh777/reactive/utils/subscription'
-import type { RektContext, RektNode } from '../lib/jsx-runtime'
+import type { RektNode, ServerContext } from '../common/jsx-runtime'
 import type { ObservedList, WatchableList } from '@aldinh777/reactive/collection/list'
 import { randomString } from '@aldinh777/toolbox/random'
 import { maplist } from '@aldinh777/reactive/collection/list/map'
@@ -19,7 +19,7 @@ interface ListSubscriptionData extends SubscriptionData {
 }
 interface StoredItem {
     item: RektNode | RektNode[]
-    context: RektContext
+    context: ServerContext
 }
 export interface TriggerResult {
     status: 'success' | 'not found' | 'error'
@@ -29,7 +29,7 @@ export interface TriggerResult {
 
 export function createHasher(uniqueHandlers: UniqueHandlers) {
     // Connection Data
-    const contextConnectionMap = new Map<string, RektContext>()
+    const contextConnectionMap = new Map<string, ServerContext>()
     // State Hash
     const stateMap = new Map<State, SubscriptionData>()
     // List & Item Hash
@@ -38,10 +38,10 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
     const handlerMap = new Map<() => any, SubscriptionData>()
     const triggerMap = new Map<string, () => any>()
     return {
-        generateContext(parentContext?: RektContext) {
+        generateContext(parentContext?: ServerContext) {
             const contextId = randomString(6)
             const unsubscribers: Unsubscribe[] = []
-            const context: RektContext = {
+            const context: ServerContext = {
                 id: contextId,
                 connectionId: parentContext?.connectionId || contextId,
                 onMount(mountHandler) {
@@ -90,7 +90,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
             }
             return context
         },
-        registerState(state: State, context: RektContext) {
+        registerState(state: State, context: ServerContext) {
             if (!stateMap.has(state)) {
                 const stateId = randomString(6)
                 const connectionMap = new Map<string, Set<string>>()
@@ -120,7 +120,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
             }
             return stateId
         },
-        registerList(list: WatchableList<any>, context: RektContext) {
+        registerList(list: WatchableList<any>, context: ServerContext) {
             if (!listMap.has(list)) {
                 const listId = randomString(6)
                 const connectionMap = new Map<string, Set<string>>()
@@ -154,7 +154,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
             }
             return listId
         },
-        registerHandler(handler: () => any, context: RektContext) {
+        registerHandler(handler: () => any, context: ServerContext) {
             if (!handlerMap.has(handler)) {
                 const handlerId = randomString(6)
                 handlerMap.set(handler, {

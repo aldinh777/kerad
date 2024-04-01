@@ -1,4 +1,4 @@
-import type { RektContext, RektNode, RektProps } from '../lib/jsx-runtime'
+import type { RektNode, RektProps, ServerContext } from '../common/jsx-runtime'
 import { join } from 'path'
 import { createHasher, md5Hash } from './hasher'
 import { http } from './http'
@@ -11,30 +11,30 @@ const hasher = createHasher({
         })
     },
     list(mappedList, listId, connectionMap) {
-        const unsubUpdate = mappedList.onUpdate(async (_index, { item, context }, prev) => {
-            const rendered = await renderToHTML(item, context)
-            http.registerPartial(context.id, rendered)
-            ws.pushListUpdate(connectionMap.keys(), context.id, prev.context.id)
-        })
-        const unsubInsert = mappedList.onInsert(async (index, { item, context }) => {
-            const rendered = await renderToHTML(item, context)
-            const isLast = index >= mappedList().length - 1
-            const insertBeforeId = isLast ? listId : mappedList(index + 1).context.id
-            http.registerPartial(context.id, rendered)
-            if (isLast) {
-                ws.pushListInsertLast(connectionMap.keys(), context.id, insertBeforeId)
-            } else {
-                ws.pushListInsert(connectionMap.keys(), context.id, insertBeforeId)
+        const unsubWatch = mappedList.watch({
+            async update(_index, { item, context }, prev) {
+                const rendered = await renderToHTML(item, context)
+                http.registerPartial(context.id, rendered)
+                ws.pushListUpdate(connectionMap.keys(), context.id, prev.context.id)
+            },
+            async insert(index, { item, context }) {
+                const rendered = await renderToHTML(item, context)
+                const isLast = index >= mappedList().length - 1
+                const insertBeforeId = isLast ? listId : mappedList(index + 1).context.id
+                http.registerPartial(context.id, rendered)
+                if (isLast) {
+                    ws.pushListInsertLast(connectionMap.keys(), context.id, insertBeforeId)
+                } else {
+                    ws.pushListInsert(connectionMap.keys(), context.id, insertBeforeId)
+                }
+            },
+            delete(_index, { context }) {
+                ws.pushListDelete(connectionMap.keys(), context.id)
+                context.dismount()
             }
         })
-        const unsubDelete = mappedList.onDelete((_index, { context }) => {
-            ws.pushListDelete(connectionMap.keys(), context.id)
-            context.dismount()
-        })
         return () => {
-            unsubUpdate()
-            unsubInsert()
-            unsubDelete()
+            unsubWatch()
             mappedList.stop()
             for (const { context } of mappedList()) {
                 context.dismount()
@@ -43,7 +43,7 @@ const hasher = createHasher({
     }
 })
 
-function renderProps(props: RektProps, context: RektContext) {
+function renderProps(props: RektProps, context: ServerContext) {
     const reactiveProps: [prop: string, stateId: string][] = []
     const eventsProps: [event: string, handlerId: string][] = []
     let strProps = ''
@@ -70,7 +70,7 @@ function renderProps(props: RektProps, context: RektContext) {
     return strProps
 }
 
-async function renderToHTML(item: RektNode | RektNode[], context: RektContext): Promise<string> {
+async function renderToHTML(item: RektNode | RektNode[], context: ServerContext): Promise<string> {
     if (item instanceof Array) {
         const htmlArray = await Promise.all(item.map((nested) => renderToHTML(nested, context)))
         return htmlArray.join('')
@@ -97,7 +97,7 @@ async function renderToHTML(item: RektNode | RektNode[], context: RektContext): 
                 const htmlOutput = await renderToHTML(props.children, context)
                 return `<${tag}${renderProps(props, context)}>${htmlOutput}</${tag}>`
             } else {
-                return `<${tag}${renderProps(props, context)} />`
+                return `<${tag}${renderProps(props, context)}></${tag}>`
             }
         } else {
             return await renderToHTML(await tag(props, context), context)
@@ -106,7 +106,7 @@ async function renderToHTML(item: RektNode | RektNode[], context: RektContext): 
     return String(item)
 }
 
-async function renderJSX(src: string, context: RektContext) {
+async function renderJSX(src: string, context: ServerContext) {
     src += '?checksum=' + (await md5Hash(src))
     const component = await import(src)
     try {
@@ -118,7 +118,7 @@ async function renderJSX(src: string, context: RektContext) {
 }
 
 async function renderLayout(jsxPath: string) {
-    const file = Bun.file(join(import.meta.dir, '../src', 'layout.html'))
+    const file = Bun.file(join(import.meta.dir, '../../app/server', 'layout.html'))
     const html = await file.text()
     const context = hasher.generateContext()
     const jsxOutput = await renderJSX(jsxPath, context)
