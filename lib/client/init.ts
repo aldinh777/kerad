@@ -4,7 +4,8 @@ import { destroyListItem, insertListItem, replaceListItem, select, selectAll } f
 import './hot-reload'
 
 const cid = document.body.getAttribute('rekt-cid')
-const socket = new WebSocket(`ws://localhost:3100/${cid}`)
+const wsHost = 'localhost:3100'
+const socket = new WebSocket(`ws://${wsHost}/${cid}`)
 
 socket.addEventListener('message', ({ data }) => {
     const [code] = data.split(':', 1)
@@ -64,7 +65,7 @@ for (const elem of selectAll('[rekt-t]')) {
 for (const elem of selectAll('rekt[type="client"]')) {
     const src = elem.getAttribute('src') + '.js' || ''
     const globalContext = generateContext()
-    import(src).then(async (Comp: {default: RektComponent}) => {
+    import(src).then(async (Comp: { default: RektComponent }) => {
         const componentContext = generateContext()
         renderDom(elem, await Comp.default({}, componentContext), globalContext)
     })
