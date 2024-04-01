@@ -45,6 +45,7 @@ export async function renderDom(target: HTMLElement, item: RektNode | RektNode[]
     } else if (typeof item === 'function') {
         if ('onChange' in item) {
             const textNode = text(item())
+            target.append(textNode)
             context.onMount(() => item.onChange((value) => (textNode.textContent = value)))
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
             const listStart = text('')

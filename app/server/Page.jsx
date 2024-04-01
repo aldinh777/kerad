@@ -4,15 +4,10 @@ import { list } from '@aldinh777/reactive/collection/list'
 import { maplist } from '@aldinh777/reactive/collection/list/map'
 import { randomItem } from '@aldinh777/toolbox/random'
 
-const randomName = () => randomItem(['mom', 'father', 'mama', 'bunda', 'world'])
-const randomColor = () => randomItem(['red', 'green', 'blue', 'yellow'])
 const globalCounter = state(0)
 const nested = state(1)
 
 export default function Page(_props, context) {
-    const who = state(randomName())
-    const color = state(randomColor())
-    const styleColor = stateFrom(color)((color) => `color: ${color}`)
     const counter = state(0)
     const nums = list([list([nested])])
 
