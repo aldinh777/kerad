@@ -37,7 +37,7 @@ function startHttpServer() {
                     })
                 }
             }
-            const jsxPath = join(import.meta.dir, '../../app/server', pathname, 'Page.jsx')
+            const jsxPath = join(import.meta.dir, '../../app/server', pathname, 'page.jsx')
             const jsxFile = Bun.file(jsxPath)
             if (await jsxFile.exists()) {
                 const resData: any = { headers: { 'Content-Type': 'text/html' }}

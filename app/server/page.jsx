@@ -1,23 +1,12 @@
 import { state } from '@aldinh777/reactive'
-import { stateFrom } from '@aldinh777/reactive/utils'
 import { list } from '@aldinh777/reactive/collection/list'
 import { maplist } from '@aldinh777/reactive/collection/list/map'
-import { randomItem } from '@aldinh777/toolbox/random'
 
 const globalCounter = state(0)
-const nested = state(1)
+const nums = list([1, 2, 3, 4])
 
 export default function Page(_props, context) {
     const counter = state(0)
-    const nums = list([list([nested])])
-
-    context.onMount(() => {
-        context.setTimeout(2000, () => nested(1254))
-        context.setTimeout(4000, () => nums(0).shift())
-        context.setTimeout(6000, () => nested(7777))
-        context.setTimeout(8000, () => nums(0).unshift(nested))
-        context.setTimeout(10000, () => nested(1998))
-    })
 
     return (
         <>
@@ -35,7 +24,11 @@ export default function Page(_props, context) {
                 <button on:click={() => counter(counter() + 1)}>+</button>
             </div>
             <h4>List Test</h4>
-            <div>[{maplist(nums, (numnum) => maplist(numnum, (num) => num))}]</div>
+            <div>[{maplist(nums, (num) => num + ', ')}]</div>
+            <div>
+                <button on:click={() => nums.push(counter())}>Push {counter}</button>
+                <button on:click={() => nums.pop()}>Pop</button>
+            </div>
         </>
     )
 }
