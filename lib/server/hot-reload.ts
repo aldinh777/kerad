@@ -20,7 +20,7 @@ declare global {
     var hotReloadWatched: boolean
 }
 
-const watchDirs = ['../../app/client', '../../app/server', '../../lib', '../../main.ts']
+const watchDirs = ['../../app', '../../lib', '../../main.ts']
 console.log('hot reload enabled, watching : ')
 for (const path of watchDirs) {
     const dir = join(import.meta.dir, path)

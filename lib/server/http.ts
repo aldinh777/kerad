@@ -45,13 +45,13 @@ function startHttpServer() {
                 return new Response(html, resData)
             }
             const filename = pathname === '/' ? '/index.html' : pathname
-            const file = Bun.file(join(import.meta.dir, '../../app/public', filename))
+            const file = Bun.file(join(import.meta.dir, '../../app/static', filename))
             if (await file.exists()) {
                 return new Response(file)
             }
-            const distFile = Bun.file(join(import.meta.dir, '../../app/dist', filename))
-            if (await distFile.exists()) {
-                return new Response(distFile)
+            const buildFile = Bun.file(join(import.meta.dir, '../../build', filename))
+            if (await buildFile.exists()) {
+                return new Response(buildFile)
             }
             return new Response('Not Found', { status: 404 })
         }

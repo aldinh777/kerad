@@ -2,22 +2,17 @@ import { join, relative } from 'path'
 import { watch } from 'fs'
 import { readdir, rm } from 'fs/promises'
 
-const entry = join(import.meta.dir, '../client/init.ts')
+const entry = join(import.meta.dir, '../../app/client/init.ts')
 const clientPath = join(import.meta.dir, '../../app/client')
-const outDir = join(import.meta.dir, '../../app/dist')
+const outDir = join(import.meta.dir, '../../build')
 
 async function bundle(updated?: string) {
     await rm(outDir, { recursive: true, force: true })
     const files = await readdir(clientPath, { recursive: true })
 
     await Bun.build({
-        entrypoints: [entry],
-        outdir: './app/dist',
-        splitting: true
-    })
-    await Bun.build({
-        entrypoints: files.filter((file) => file.endsWith('.jsx')).map((jsx) => join(clientPath, jsx)),
-        outdir: './app/dist',
+        entrypoints: [entry, ...files.filter((file) => file.endsWith('.jsx')).map((jsx) => join(clientPath, jsx))],
+        outdir: outDir,
         splitting: true
     })
     if (updated) {
@@ -27,7 +22,7 @@ async function bundle(updated?: string) {
     }
 }
 
-const watchDirs = ['../client', '../../app/client']
+const watchDirs = ['../../app/client']
 console.log('hot bundling at : ')
 for (const path of watchDirs) {
     const dir = join(import.meta.dir, path)

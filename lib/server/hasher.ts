@@ -109,9 +109,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
             if (!listMap.has(list)) {
                 const listId = randomString(6)
                 const connectionMap = new Map<string, Set<string>>()
-                const mappedList = maplist(list, (item) => {
-                    return { item: item, context: this.generateContext(context.request, context) }
-                })
+                const mappedList = maplist(list, (item) => ({ item: item, context: this.generateSubContext(context) }))
                 listMap.set(list, {
                     id: listId,
                     connectionMap: connectionMap,

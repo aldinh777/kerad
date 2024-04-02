@@ -59,18 +59,6 @@ export function createContext() {
         },
         setTimeout(ms: number, handler: () => any) {
             this.onMount(() => {
-                const interval = setInterval(() => {
-                    try {
-                        handler()
-                    } catch (error) {
-                        console.error(error)
-                    }
-                }, ms)
-                return () => clearInterval(interval)
-            })
-        },
-        setInterval(ms: number, handler: () => any) {
-            this.onMount(() => {
                 const timeout = setTimeout(() => {
                     try {
                         handler()
@@ -79,6 +67,18 @@ export function createContext() {
                     }
                 }, ms)
                 return () => clearTimeout(timeout)
+            })
+        },
+        setInterval(ms: number, handler: () => any) {
+            this.onMount(() => {
+                const interval = setInterval(() => {
+                    try {
+                        handler()
+                    } catch (error) {
+                        console.error(error)
+                    }
+                }, ms)
+                return () => clearInterval(interval)
             })
         }
     }

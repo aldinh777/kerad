@@ -1,8 +1,8 @@
-import type { RektComponent } from '../common/jsx-runtime'
-import { createContext } from '../common/jsx-runtime'
-import { renderDom } from './rekt-dom'
-import { destroyListItem, insertListItem, replaceListItem, select, selectAll } from './utils'
-import './hot-reload'
+import type { RektComponent } from '../../lib/common/jsx-runtime'
+import { createContext } from '../../lib/common/jsx-runtime'
+import { renderDom } from '../../lib/client/rekt-dom'
+import { destroyListItem, insertListItem, replaceListItem, select, selectAll } from '../../lib/client/utils'
+import '../../lib/client/hot-reload'
 
 const cid = document.body.getAttribute('rekt-cid')
 const wsHost = 'localhost:3100'
