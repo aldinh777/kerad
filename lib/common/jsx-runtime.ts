@@ -13,6 +13,9 @@ export interface RektContext {
 export interface ServerContext extends RektContext {
     id: string
     connectionId: string
+    request: Request
+    setHeader(name: string, value: string): void
+    setStatus(code: number, statusText?: string): void
 }
 
 export interface RektProps {
@@ -36,3 +39,47 @@ export function jsx(tag: string | RektComponent, props: any): RektElement {
 }
 
 export const Fragment: RektComponent = (props) => props.children || []
+
+export function createContext() {
+    const unsubscribers: Unsubscribe[] = []
+    return {
+        onMount(mountHandler: () => void | Unsubscribe) {
+            const dismountHandler = mountHandler()
+            if (dismountHandler) {
+                this.onDismount(dismountHandler)
+            }
+        },
+        onDismount(dismountHandler: Unsubscribe) {
+            unsubscribers.push(dismountHandler)
+        },
+        dismount(): void {
+            for (const unsubscribe of unsubscribers.splice(0)) {
+                unsubscribe()
+            }
+        },
+        setTimeout(ms: number, handler: () => any) {
+            this.onMount(() => {
+                const interval = setInterval(() => {
+                    try {
+                        handler()
+                    } catch (error) {
+                        console.error(error)
+                    }
+                }, ms)
+                return () => clearInterval(interval)
+            })
+        },
+        setInterval(ms: number, handler: () => any) {
+            this.onMount(() => {
+                const timeout = setTimeout(() => {
+                    try {
+                        handler()
+                    } catch (error) {
+                        console.error(error)
+                    }
+                }, ms)
+                return () => clearTimeout(timeout)
+            })
+        }
+    }
+}

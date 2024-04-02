@@ -1,5 +1,6 @@
 import type { RektComponent } from '../common/jsx-runtime'
-import { generateContext, renderDom } from './rekt-dom'
+import { createContext } from '../common/jsx-runtime'
+import { renderDom } from './rekt-dom'
 import { destroyListItem, insertListItem, replaceListItem, select, selectAll } from './utils'
 import './hot-reload'
 
@@ -64,9 +65,9 @@ for (const elem of selectAll('[rekt-t]')) {
 
 for (const elem of selectAll('rekt[type="client"]')) {
     const src = elem.getAttribute('src') + '.js' || ''
-    const globalContext = generateContext()
+    const globalContext = createContext()
     import(src).then(async (Comp: { default: RektComponent }) => {
-        const componentContext = generateContext()
+        const componentContext = createContext()
         renderDom(elem, await Comp.default({}, componentContext), globalContext)
     })
 }

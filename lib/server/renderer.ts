@@ -13,12 +13,12 @@ const hasher = createHasher({
     list(mappedList, listId, connectionMap) {
         const unsubWatch = mappedList.watch({
             async update(_index, { item, context }, prev) {
-                const rendered = await renderToHTML(item, context)
+                const rendered = await renderToHtml(item, context)
                 http.registerPartial(context.id, rendered)
                 ws.pushListUpdate(connectionMap.keys(), context.id, prev.context.id)
             },
             async insert(index, { item, context }) {
-                const rendered = await renderToHTML(item, context)
+                const rendered = await renderToHtml(item, context)
                 const isLast = index >= mappedList().length - 1
                 const insertBeforeId = isLast ? listId : mappedList(index + 1).context.id
                 http.registerPartial(context.id, rendered)
@@ -70,9 +70,9 @@ function renderProps(props: RektProps, context: ServerContext) {
     return strProps
 }
 
-async function renderToHTML(item: RektNode | RektNode[], context: ServerContext): Promise<string> {
+async function renderToHtml(item: RektNode | RektNode[], context: ServerContext): Promise<string> {
     if (item instanceof Array) {
-        const htmlArray = await Promise.all(item.map((nested) => renderToHTML(nested, context)))
+        const htmlArray = await Promise.all(item.map((nested) => renderToHtml(nested, context)))
         return htmlArray.join('')
     } else if (typeof item === 'string') {
         return item
@@ -84,7 +84,7 @@ async function renderToHTML(item: RektNode | RektNode[], context: ServerContext)
             const childrenOutput = await Promise.all(
                 item().map(async (value, index) => {
                     const context = hasher.getContext(item, index)
-                    const content = await renderToHTML(value, context)
+                    const content = await renderToHtml(value, context)
                     return `<rekt ib="${context.id}"></rekt>${content}<rekt ie="${context.id}"></rekt>`
                 })
             )
@@ -94,34 +94,34 @@ async function renderToHTML(item: RektNode | RektNode[], context: ServerContext)
         const { tag, props } = item
         if (typeof tag === 'string') {
             if (props.children !== undefined) {
-                const htmlOutput = await renderToHTML(props.children, context)
+                const htmlOutput = await renderToHtml(props.children, context)
                 return `<${tag}${renderProps(props, context)}>${htmlOutput}</${tag}>`
             } else {
                 return `<${tag}${renderProps(props, context)}></${tag}>`
             }
         } else {
-            return await renderToHTML(await tag(props, context), context)
+            return await renderToHtml(await tag(props, context), context)
         }
     }
     return String(item)
 }
 
-async function renderJSX(src: string, context: ServerContext) {
+async function renderJsx(src: string, context: ServerContext) {
     src += '?checksum=' + (await md5Hash(src))
     const component = await import(src)
     try {
         const result = await component.default({}, context)
-        return renderToHTML(result, context)
+        return renderToHtml(result, context)
     } catch (error) {
         return `<pre>${error instanceof Error ? error.stack : error}</pre>`
     }
 }
 
-async function renderLayout(jsxPath: string) {
+async function renderLayout(jsxPath: string, req: Request, responseData: any) {
     const file = Bun.file(join(import.meta.dir, '../../app/server', 'layout.html'))
     const html = await file.text()
-    const context = hasher.generateContext()
-    const jsxOutput = await renderJSX(jsxPath, context)
+    const context = hasher.generateContext(req, responseData)
+    const jsxOutput = await renderJsx(jsxPath, context)
     return html
         .replace('%COMPONENT_ENTRY%', jsxOutput)
         .replace('%APP_TITLE%', process.env['APP_TITLE'] as string)
@@ -129,7 +129,7 @@ async function renderLayout(jsxPath: string) {
 }
 
 export const renderer = {
-    renderJSX: (jsxPath: string) => renderLayout(jsxPath),
+    renderLayout: renderLayout,
     triggerEvent: (handlerId: string) => hasher.triggerHandler(handlerId),
     unsubscribe: (contextId: string) => hasher.unsubscribe(contextId)
 }

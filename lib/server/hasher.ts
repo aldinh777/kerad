@@ -4,6 +4,7 @@ import type { RektNode, ServerContext } from '../common/jsx-runtime'
 import type { ObservedList, WatchableList } from '@aldinh777/reactive/collection/list'
 import { randomString } from '@aldinh777/toolbox/random'
 import { maplist } from '@aldinh777/reactive/collection/list/map'
+import { createContext } from '../common/jsx-runtime'
 
 interface UniqueHandlers {
     state: (state: State, stateId: string, connectionMap: Map<string, Set<string>>) => Unsubscribe
@@ -38,56 +39,40 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
     const handlerMap = new Map<() => any, SubscriptionData>()
     const triggerMap = new Map<string, () => any>()
     return {
-        generateContext(parentContext?: ServerContext) {
+        generateSubContext(parentContext: ServerContext) {
             const contextId = randomString(6)
-            const unsubscribers: Unsubscribe[] = []
             const context: ServerContext = {
                 id: contextId,
-                connectionId: parentContext?.connectionId || contextId,
-                onMount(mountHandler) {
-                    const dismountHandler = mountHandler()
-                    if (dismountHandler) {
-                        this.onDismount(dismountHandler)
-                    }
+                connectionId: parentContext.connectionId,
+                request: parentContext.request,
+                setHeader(name: string, value: string): void {
+                    parentContext.setHeader(name, value)
                 },
-                onDismount(dismountHandler) {
-                    unsubscribers.push(dismountHandler)
+                setStatus(code: number, statusText?: string | undefined): void {
+                    parentContext.setStatus(code, statusText)
                 },
-                dismount() {
-                    for (const unsubscribe of unsubscribers.splice(0)) {
-                        unsubscribe()
-                    }
-                },
-                setInterval(ms, handler) {
-                    context.onMount(() => {
-                        const interval = setInterval(() => {
-                            try {
-                                handler()
-                            } catch (error) {
-                                console.error(error)
-                            }
-                        }, ms)
-                        return () => clearInterval(interval)
-                    })
-                },
-                setTimeout(ms, handler) {
-                    context.onMount(() => {
-                        const timeout = setTimeout(() => {
-                            try {
-                                handler()
-                            } catch (error) {
-                                console.error(error)
-                            }
-                        }, ms)
-                        return () => clearTimeout(timeout)
-                    })
-                }
+                ...createContext()
             }
-            if (parentContext) {
-                parentContext.onDismount(() => context.dismount())
-            } else {
-                contextConnectionMap.set(contextId, context)
+            parentContext.onDismount(() => context.dismount())
+            return context
+        },
+        generateContext(req: Request, resData: any) {
+            const contextId = randomString(6)
+            const context: ServerContext = {
+                id: contextId,
+                connectionId: contextId,
+                request: req,
+                setHeader: function (name: string, value: string): void {
+                    resData.headers ??= {}
+                    resData.headers[name] = value
+                },
+                setStatus: function (status: number, statusText: string): void {
+                    resData.status &&= status
+                    resData.status &&= statusText
+                },
+                ...createContext()
             }
+            contextConnectionMap.set(contextId, context)
             return context
         },
         registerState(state: State, context: ServerContext) {
@@ -125,7 +110,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
                 const listId = randomString(6)
                 const connectionMap = new Map<string, Set<string>>()
                 const mappedList = maplist(list, (item) => {
-                    return { item: item, context: this.generateContext(context) }
+                    return { item: item, context: this.generateContext(context.request, context) }
                 })
                 listMap.set(list, {
                     id: listId,

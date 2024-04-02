@@ -1,6 +1,6 @@
 import type { RektProps, RektContext, RektNode } from '../common/jsx-runtime'
-import type { Unsubscribe } from '@aldinh777/reactive/utils/subscription'
 import type { ObservedList } from '@aldinh777/reactive/collection/list'
+import { createContext } from '../common/jsx-runtime'
 import { maplist } from '@aldinh777/reactive/collection/list/map'
 import { destroyElements } from './utils'
 
@@ -54,7 +54,7 @@ export async function renderDom(target: HTMLElement, item: RektNode | RektNode[]
                 itemStart: text(''),
                 itemEnd: text(''),
                 item: item,
-                context: generateContext()
+                context: createContext()
             }))
             target.append(listStart)
             for (const { item: listItem, context: itemContext, itemStart, itemEnd } of mappedList()) {
@@ -105,49 +105,5 @@ export async function renderDom(target: HTMLElement, item: RektNode | RektNode[]
         }
     } else {
         await renderDom(target, String(item), context, before)
-    }
-}
-
-export function generateContext(): RektContext {
-    const unsubscribers: Unsubscribe[] = []
-    return {
-        onMount(mountHandler) {
-            const dismountHandler = mountHandler()
-            if (dismountHandler) {
-                this.onDismount(dismountHandler)
-            }
-        },
-        onDismount(dismountHandler) {
-            unsubscribers.push(dismountHandler)
-        },
-        dismount() {
-            for (const unsubscribe of unsubscribers) {
-                unsubscribe()
-            }
-        },
-        setInterval(ms, handler) {
-            this.onMount(() => {
-                const interval = setInterval(() => {
-                    try {
-                        handler()
-                    } catch (error) {
-                        console.error(error)
-                    }
-                }, ms)
-                return () => clearInterval(interval)
-            })
-        },
-        setTimeout(ms, handler) {
-            this.onMount(() => {
-                const timeout = setTimeout(() => {
-                    try {
-                        handler()
-                    } catch (error) {
-                        console.error(error)
-                    }
-                }, ms)
-                return () => clearTimeout(timeout)
-            })
-        }
     }
 }

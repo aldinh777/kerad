@@ -40,8 +40,9 @@ function startHttpServer() {
             const jsxPath = join(import.meta.dir, '../../app/server', pathname, 'Page.jsx')
             const jsxFile = Bun.file(jsxPath)
             if (await jsxFile.exists()) {
-                const html = await renderer.renderJSX(jsxPath)
-                return new Response(html, { headers: { 'Content-Type': 'text/html' } })
+                const resData: any = { headers: { 'Content-Type': 'text/html' }}
+                const html = await renderer.renderLayout(jsxPath, req, resData)
+                return new Response(html, resData)
             }
             const filename = pathname === '/' ? '/index.html' : pathname
             const file = Bun.file(join(import.meta.dir, '../../app/public', filename))
