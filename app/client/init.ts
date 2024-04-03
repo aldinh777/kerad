@@ -71,3 +71,12 @@ for (const elem of selectAll('rekt[type="client"]')) {
         renderDom(elem, await Comp.default({}, componentContext), globalContext)
     })
 }
+
+for (const elem of selectAll('form[rekt-f]')) {
+    elem.addEventListener('submit', (ev: SubmitEvent) => {
+        const formId = elem.getAttribute('rekt-f')
+        const formData: any = new FormData(ev.currentTarget as HTMLFormElement)
+        fetch(`/submit?${formId}`, { method: 'post', body: formData })
+        ev.preventDefault()
+    })
+}

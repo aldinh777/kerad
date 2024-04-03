@@ -38,157 +38,213 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
     // Trigger & Handler Hash
     const handlerMap = new Map<() => any, SubscriptionData>()
     const triggerMap = new Map<string, () => any>()
-    return {
-        generateSubContext(parentContext: ServerContext) {
-            const contextId = randomString(6)
-            const context: ServerContext = {
-                id: contextId,
-                connectionId: parentContext.connectionId,
-                request: parentContext.request,
-                setHeader(name: string, value: string): void {
-                    parentContext.setHeader(name, value)
-                },
-                setStatus(code: number, statusText?: string | undefined): void {
-                    parentContext.setStatus(code, statusText)
-                },
-                ...createContext()
-            }
-            parentContext.onDismount(() => context.dismount())
-            return context
-        },
-        generateContext(req: Request, resData: any) {
-            const contextId = randomString(6)
-            const context: ServerContext = {
-                id: contextId,
-                connectionId: contextId,
-                request: req,
-                setHeader: function (name: string, value: string): void {
-                    resData.headers ??= {}
-                    resData.headers[name] = value
-                },
-                setStatus: function (status: number, statusText: string): void {
-                    resData.status &&= status
-                    resData.status &&= statusText
-                },
-                ...createContext()
-            }
-            contextConnectionMap.set(contextId, context)
-            return context
-        },
-        registerState(state: State, context: ServerContext) {
-            if (!stateMap.has(state)) {
-                const stateId = randomString(6)
-                const connectionMap = new Map<string, Set<string>>()
-                stateMap.set(state, {
-                    id: stateId,
-                    connectionMap: connectionMap,
-                    unsubscribe: uniqueHandlers.state(state, stateId, connectionMap)
-                })
-            }
-            const { id: stateId, connectionMap: connectionMap, unsubscribe } = stateMap.get(state)!
-            if (!connectionMap.has(context.connectionId)) {
-                connectionMap.set(context.connectionId, new Set())
-            }
-            const contextSet = connectionMap.get(context.connectionId)!
-            if (!contextSet.has(context.id)) {
-                contextSet.add(context.id)
-                context.onDismount(() => {
-                    contextSet.delete(context.id)
-                    if (contextSet.size === 0) {
-                        connectionMap.delete(context.connectionId)
-                        if (connectionMap.size === 0) {
-                            stateMap.delete(state)
-                            unsubscribe?.()
-                        }
-                    }
-                })
-            }
-            return stateId
-        },
-        registerList(list: WatchableList<any>, context: ServerContext) {
-            if (!listMap.has(list)) {
-                const listId = randomString(6)
-                const connectionMap = new Map<string, Set<string>>()
-                const mappedList = maplist(list, (item) => ({ item: item, context: this.generateSubContext(context) }))
-                listMap.set(list, {
-                    id: listId,
-                    connectionMap: connectionMap,
-                    unsubscribe: uniqueHandlers.list(mappedList, listId, connectionMap),
-                    mappedList: mappedList
-                })
-            }
-            const { id: listId, connectionMap: connectionMap, unsubscribe } = listMap.get(list)!
-            if (!connectionMap.has(context.connectionId)) {
-                connectionMap.set(context.connectionId, new Set())
-            }
-            const contextSet = connectionMap.get(context.connectionId)!
-            if (!contextSet.has(context.id)) {
-                contextSet.add(context.id)
-                context.onDismount(() => {
-                    contextSet.delete(context.id)
-                    if (contextSet.size === 0) {
-                        connectionMap.delete(context.connectionId)
-                        if (connectionMap.size === 0) {
-                            listMap.delete(list)
-                            unsubscribe?.()
-                        }
-                    }
-                })
-            }
-            return listId
-        },
-        registerHandler(handler: () => any, context: ServerContext) {
-            if (!handlerMap.has(handler)) {
-                const handlerId = randomString(6)
-                handlerMap.set(handler, {
-                    id: handlerId,
-                    connectionMap: new Map()
-                })
-                triggerMap.set(handlerId, handler)
-            }
-            const { id: handlerId, connectionMap } = handlerMap.get(handler)!
-            if (!connectionMap.has(context.connectionId)) {
-                connectionMap.set(context.connectionId, new Set())
-            }
-            const contextSet = connectionMap.get(context.connectionId)!
-            if (!contextSet.has(context.id)) {
-                contextSet.add(context.id)
-                context.onDismount(() => {
-                    contextSet.delete(context.id)
-                    if (contextSet.size === 0) {
-                        connectionMap.delete(context.connectionId)
-                        if (connectionMap.size === 0) {
-                            handlerMap.delete(handler)
-                            triggerMap.delete(handlerId)
-                        }
-                    }
-                })
-            }
-            return handlerId
-        },
-        unsubscribe(connectionId: string) {
-            if (contextConnectionMap.has(connectionId)) {
-                const context = contextConnectionMap.get(connectionId)!
-                contextConnectionMap.delete(connectionId)
-                context.dismount()
-            }
-        },
-        getContext(list: WatchableList<any>, index: number) {
-            return listMap.get(list)!.mappedList(index).context
-        },
-        triggerHandler(handlerId: string): TriggerResult {
-            if (triggerMap.has(handlerId)) {
-                const handler = triggerMap.get(handlerId)
-                try {
-                    const data = handler!()
-                    return { status: 'success', data: JSON.stringify(data) }
-                } catch (error) {
-                    return { status: 'error', error: error }
-                }
-            } else {
-                return { status: 'not found' }
-            }
+    // Form Handler Hash
+    const formHandlerMap = new Map<(formData: FormData) => any, SubscriptionData>()
+    const formSubmitMap = new Map<string, (formData: FormData) => any>()
+    function generateSubContext(parentContext: ServerContext) {
+        const contextId = randomString(6)
+        const context: ServerContext = {
+            id: contextId,
+            connectionId: parentContext.connectionId,
+            request: parentContext.request,
+            setHeader(name: string, value: string): void {
+                parentContext.setHeader(name, value)
+            },
+            setStatus(code: number, statusText?: string | undefined): void {
+                parentContext.setStatus(code, statusText)
+            },
+            ...createContext()
         }
+        parentContext.onDismount(() => context.dismount())
+        return context
+    }
+    function generateContext(req: Request, resData: any) {
+        const contextId = randomString(6)
+        const context: ServerContext = {
+            id: contextId,
+            connectionId: contextId,
+            request: req,
+            setHeader: function (name: string, value: string): void {
+                resData.headers ??= {}
+                resData.headers[name] = value
+            },
+            setStatus: function (status: number, statusText: string): void {
+                resData.status &&= status
+                resData.status &&= statusText
+            },
+            ...createContext()
+        }
+        contextConnectionMap.set(contextId, context)
+        return context
+    }
+    function registerState(state: State, context: ServerContext) {
+        if (!stateMap.has(state)) {
+            const stateId = randomString(6)
+            const connectionMap = new Map<string, Set<string>>()
+            stateMap.set(state, {
+                id: stateId,
+                connectionMap: connectionMap,
+                unsubscribe: uniqueHandlers.state(state, stateId, connectionMap)
+            })
+        }
+        const { id: stateId, connectionMap: connectionMap, unsubscribe } = stateMap.get(state)!
+        if (!connectionMap.has(context.connectionId)) {
+            connectionMap.set(context.connectionId, new Set())
+        }
+        const contextSet = connectionMap.get(context.connectionId)!
+        if (!contextSet.has(context.id)) {
+            contextSet.add(context.id)
+            context.onDismount(() => {
+                contextSet.delete(context.id)
+                if (contextSet.size === 0) {
+                    connectionMap.delete(context.connectionId)
+                    if (connectionMap.size === 0) {
+                        stateMap.delete(state)
+                        unsubscribe?.()
+                    }
+                }
+            })
+        }
+        return stateId
+    }
+    function registerList(list: WatchableList<any>, context: ServerContext) {
+        if (!listMap.has(list)) {
+            const listId = randomString(6)
+            const connectionMap = new Map<string, Set<string>>()
+            const mappedList = maplist(list, (item) => ({ item: item, context: generateSubContext(context) }))
+            listMap.set(list, {
+                id: listId,
+                connectionMap: connectionMap,
+                unsubscribe: uniqueHandlers.list(mappedList, listId, connectionMap),
+                mappedList: mappedList
+            })
+        }
+        const { id: listId, connectionMap: connectionMap, unsubscribe } = listMap.get(list)!
+        if (!connectionMap.has(context.connectionId)) {
+            connectionMap.set(context.connectionId, new Set())
+        }
+        const contextSet = connectionMap.get(context.connectionId)!
+        if (!contextSet.has(context.id)) {
+            contextSet.add(context.id)
+            context.onDismount(() => {
+                contextSet.delete(context.id)
+                if (contextSet.size === 0) {
+                    connectionMap.delete(context.connectionId)
+                    if (connectionMap.size === 0) {
+                        listMap.delete(list)
+                        unsubscribe?.()
+                    }
+                }
+            })
+        }
+        return listId
+    }
+    function registerHandler(handler: () => any, context: ServerContext) {
+        if (!handlerMap.has(handler)) {
+            const handlerId = randomString(6)
+            handlerMap.set(handler, {
+                id: handlerId,
+                connectionMap: new Map()
+            })
+            triggerMap.set(handlerId, handler)
+        }
+        const { id: handlerId, connectionMap } = handlerMap.get(handler)!
+        if (!connectionMap.has(context.connectionId)) {
+            connectionMap.set(context.connectionId, new Set())
+        }
+        const contextSet = connectionMap.get(context.connectionId)!
+        if (!contextSet.has(context.id)) {
+            contextSet.add(context.id)
+            context.onDismount(() => {
+                contextSet.delete(context.id)
+                if (contextSet.size === 0) {
+                    connectionMap.delete(context.connectionId)
+                    if (connectionMap.size === 0) {
+                        handlerMap.delete(handler)
+                        triggerMap.delete(handlerId)
+                    }
+                }
+            })
+        }
+        return handlerId
+    }
+    function registerFormHandler(handler: (formData: FormData) => any, context: ServerContext) {
+        if (!formHandlerMap.has(handler)) {
+            const formId = randomString(6)
+            formHandlerMap.set(handler, {
+                id: formId,
+                connectionMap: new Map()
+            })
+            formSubmitMap.set(formId, handler)
+        }
+        const { id: handlerId, connectionMap } = formHandlerMap.get(handler)!
+        if (!connectionMap.has(context.connectionId)) {
+            connectionMap.set(context.connectionId, new Set())
+        }
+        const contextSet = connectionMap.get(context.connectionId)!
+        if (!contextSet.has(context.id)) {
+            contextSet.add(context.id)
+            context.onDismount(() => {
+                contextSet.delete(context.id)
+                if (contextSet.size === 0) {
+                    connectionMap.delete(context.connectionId)
+                    if (connectionMap.size === 0) {
+                        formHandlerMap.delete(handler)
+                        formSubmitMap.delete(handlerId)
+                    }
+                }
+            })
+        }
+        return handlerId
+    }
+    function unsubscribe(connectionId: string) {
+        if (contextConnectionMap.has(connectionId)) {
+            const context = contextConnectionMap.get(connectionId)!
+            contextConnectionMap.delete(connectionId)
+            context.dismount()
+        }
+    }
+    function getContext(list: WatchableList<any>, index: number) {
+        return listMap.get(list)!.mappedList(index).context
+    }
+    function triggerHandler(handlerId: string): TriggerResult {
+        if (triggerMap.has(handlerId)) {
+            const handler = triggerMap.get(handlerId)
+            try {
+                const data = handler!()
+                return { status: 'success', data: JSON.stringify(data) }
+            } catch (error) {
+                return { status: 'error', error: error }
+            }
+        } else {
+            return { status: 'not found' }
+        }
+    }
+    function submitForm(formId: string, formData: FormData) {
+        if (formSubmitMap.has(formId)) {
+            const handler = formSubmitMap.get(formId)
+            try {
+                const data = handler!(formData)
+                return { status: 'success', data: JSON.stringify(data) }
+            } catch (error) {
+                return { status: 'error', error: error }
+            }
+        } else {
+            return { status: 'not found' }
+        }
+    }
+
+    return {
+        generateContext,
+        generateSubContext,
+        registerState,
+        registerList,
+        registerHandler,
+        registerFormHandler,
+        unsubscribe,
+        getContext,
+        triggerHandler,
+        submitForm
     }
 }
 

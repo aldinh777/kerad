@@ -36,11 +36,29 @@ function startHttpServer() {
                         headers: jsonHeader
                     })
                 }
+            } else if (pathname === '/submit') {
+                const handlerId = url.search.slice(1)
+                const formData = await req.formData()
+                const { status, data, error } = renderer.submitForm(handlerId, formData)
+                const jsonHeader = { 'Content-Type': 'application/json' }
+                if (status === 'not found') {
+                    return new Response(JSON.stringify({ status: 'not found' }), { status: 404, headers: jsonHeader })
+                } else if (status === 'error') {
+                    const message = error instanceof Error ? error.message : error
+                    return new Response(JSON.stringify({ status: 'error', error: message }), {
+                        status: 500,
+                        headers: jsonHeader
+                    })
+                } else {
+                    return new Response(JSON.stringify({ status: 'success', data: data && JSON.parse(data) }), {
+                        headers: jsonHeader
+                    })
+                }
             }
             const jsxPath = join(import.meta.dir, '../../app/server', pathname, 'page.jsx')
             const jsxFile = Bun.file(jsxPath)
             if (await jsxFile.exists()) {
-                const resData: any = { headers: { 'Content-Type': 'text/html' }}
+                const resData: any = { headers: { 'Content-Type': 'text/html' } }
                 const html = await renderer.renderLayout(jsxPath, req, resData)
                 return new Response(html, resData)
             }

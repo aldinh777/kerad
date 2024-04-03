@@ -93,6 +93,12 @@ async function renderToHtml(item: RektNode | RektNode[], context: ServerContext)
     } else if (typeof item === 'object' && 'tag' in item && 'props' in item) {
         const { tag, props } = item
         if (typeof tag === 'string') {
+            if (tag === 'form' && typeof props['on:submit'] === 'function') {
+                const submitHandler = props['on:submit']
+                const formId = hasher.registerFormHandler(submitHandler, context)
+                props['rekt-f'] = formId
+                delete props['on:submit']
+            }
             if (props.children !== undefined) {
                 const htmlOutput = await renderToHtml(props.children, context)
                 return `<${tag}${renderProps(props, context)}>${htmlOutput}</${tag}>`
@@ -131,5 +137,6 @@ async function renderLayout(jsxPath: string, req: Request, responseData: any) {
 export const renderer = {
     renderLayout: renderLayout,
     triggerEvent: (handlerId: string) => hasher.triggerHandler(handlerId),
+    submitForm: (formId: string, data: FormData) => hasher.submitForm(formId, data),
     unsubscribe: (contextId: string) => hasher.unsubscribe(contextId)
 }
