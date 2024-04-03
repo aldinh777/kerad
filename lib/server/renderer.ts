@@ -1,4 +1,5 @@
 import type { RektNode, RektProps, ServerContext } from '../common/jsx-runtime'
+import type { State } from '@aldinh777/reactive'
 import { join } from 'path'
 import { createHasher, md5Hash } from './hasher'
 import { http } from './http'
@@ -43,18 +44,31 @@ const hasher = createHasher({
     }
 })
 
+function isReactive(state: any): state is State {
+    return typeof state === 'function' && 'onChange' in state
+}
+
 function renderProps(props: RektProps, context: ServerContext) {
     const reactiveProps: [prop: string, stateId: string][] = []
+    const reactiveBinds: [prop: string, stateId: string][] = []
     const eventsProps: [event: string, handlerId: string][] = []
     let strProps = ''
     for (const prop in props) {
         const value = props[prop]
         if (prop === 'children') {
             continue
+        } else if (prop.startsWith('bind:')) {
+            const propName = prop.slice(5)
+            if (isReactive(value)) {
+                reactiveBinds.push([propName, hasher.registerState(value, context)])
+                strProps += ` ${propName}="${value()}"`
+            } else {
+                strProps += ` ${propName}="${value}"`
+            }
         } else if (prop.startsWith('on:')) {
             const eventName = prop.slice(3)
             eventsProps.push([eventName, hasher.registerHandler(value, context)])
-        } else if (typeof value === 'function' && 'onChange' in value) {
+        } else if (isReactive(value)) {
             reactiveProps.push([prop, hasher.registerState(value, context)])
             strProps += ` ${prop}="${value()}"`
         } else {
@@ -63,6 +77,9 @@ function renderProps(props: RektProps, context: ServerContext) {
     }
     if (reactiveProps.length) {
         strProps += ` rekt-p="${reactiveProps.map((p) => p.join(':')).join(' ')}"`
+    }
+    if (reactiveBinds.length) {
+        strProps += ` rekt-b="${reactiveBinds.map((p) => p.join(':')).join(' ')}"`
     }
     if (eventsProps.length) {
         strProps += ` rekt-t="${eventsProps.map((t) => t.join(':')).join(' ')}"`

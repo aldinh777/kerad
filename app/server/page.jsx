@@ -14,6 +14,7 @@ export default function Page(_props, context) {
                 <rekt type="client" src="./App"></rekt>
             </div>
             <div>
+                <input type="number" name="number" bind:value={counter} />
                 <h5>Global Counter: {globalCounter}</h5>
                 <button on:click={() => globalCounter(globalCounter() - 1)}>-</button>
                 <button on:click={() => globalCounter(globalCounter() + 1)}>+</button>
