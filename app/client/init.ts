@@ -2,7 +2,7 @@ import type { RektComponent, RektContext } from '../../lib/common/jsx-runtime'
 import { removeFromArray } from '@aldinh777/toolbox/array-operation'
 import { createContext } from '../../lib/common/jsx-runtime'
 import { renderDom, text } from '../../lib/client/rekt-dom'
-import { select, selectAll } from '../../lib/client/utils'
+import { destroyElements, select, selectAll } from '../../lib/client/utils'
 import '../../lib/client/hot-reload'
 
 interface BindData {
@@ -11,14 +11,12 @@ interface BindData {
     bind?: string
 }
 interface ElementBorderData {
+    context: RektContext
     begin: Text
     end: Text
 }
-interface ItemElementData extends ElementBorderData {
-    context: RektContext
-}
 interface ListElementData extends ElementBorderData {
-    items: Map<string, ItemElementData>
+    items: Map<string, ElementBorderData>
 }
 
 const cid = document.body.getAttribute('rekt-cid')
@@ -114,17 +112,18 @@ function bindRecursive(node: HTMLElement | Document, context: RektContext) {
         const listId = listElement.getAttribute('l')!
         const listBegin = text()
         const listEnd = text()
-        const listItems = new Map<string, ItemElementData>()
-        listBindings.set(listId, { begin: listBegin, end: listEnd, items: listItems })
+        const listItems = new Map<string, ElementBorderData>()
+        listBindings.set(listId, { begin: listBegin, end: listEnd, items: listItems, context })
         const contents: any[] = [listBegin]
         for (const item of listElement.children as unknown as HTMLElement[]) {
             const itemId = item.getAttribute('i')!
-            const context = createContext()
+            const itemContext = createContext()
             const itemBegin = text()
             const itemEnd = text()
-            listItems.set(itemId, { begin: itemBegin, end: itemEnd, context })
+            listItems.set(itemId, { begin: itemBegin, end: itemEnd, context: itemContext })
+            context.onDismount(() => itemContext.dismount())
             contents.push(itemBegin)
-            bindRecursive(item, context)
+            bindRecursive(item, itemContext)
             contents.push(...(item.childNodes as any), itemEnd)
         }
         contents.push(listEnd)
@@ -141,9 +140,38 @@ function bindRecursive(node: HTMLElement | Document, context: RektContext) {
 
 bindRecursive(document, createContext())
 
-console.log(listBindings)
-
 globalThis.listBindings = listBindings
+
+export function destroyListItem(listId: string, itemId: string) {
+    const list = listBindings.get(listId)!
+    const item = list.items.get(itemId)!
+    destroyElements(item.begin, item.end)
+    item.context.dismount()
+    list.items.delete(itemId)
+}
+
+export function insertListItem(html: string, listId: string, itemId: string, nextId?: string) {
+    const list = listBindings.get(listId)!
+    const targetBefore = nextId ? list.items.get(nextId)!.begin : list.end
+    const holder = document.createElement('div')
+    holder.innerHTML = html
+    const itemBegin = text()
+    const itemEnd = text()
+    const itemContext = createContext()
+    list.items.set(itemId, { begin: itemBegin, end: itemEnd, context: itemContext })
+    list.context.onDismount(() => itemContext.dismount())
+    bindRecursive(holder, itemContext)
+    targetBefore.parentNode?.insertBefore(itemBegin, targetBefore)
+    while (holder.firstChild) {
+        targetBefore.parentNode?.insertBefore(holder.firstChild, targetBefore)
+    }
+    targetBefore.parentNode?.insertBefore(itemEnd, targetBefore)
+}
+
+export function replaceListItem(html: string, listId: string, itemId: string, replaceId: string) {
+    insertListItem(html, listId, itemId, replaceId)
+    destroyListItem(listId, replaceId)
+}
 
 socket.addEventListener('message', ({ data }) => {
     const [code] = data.split(':', 1)
@@ -160,25 +188,21 @@ socket.addEventListener('message', ({ data }) => {
         }
     } else if (code === 'u') {
         const [listId, itemId, replaceId] = data.slice(2).split(':')
-        console.log({ listId, itemId, replaceId })
-        // fetch(`/partial?${itemId}`)
-        //     .then((res) => res.text())
-        //     .then((text) => replaceListItem(itemId, replaceId, text))
+        fetch(`/partial?${itemId}`)
+            .then((res) => res.text())
+            .then((htmlText) => replaceListItem(htmlText, listId, itemId, replaceId))
     } else if (code === 'i') {
         const [listId, itemId, nextItemId] = data.slice(2).split(':')
-        console.log({ listId, itemId, nextItemId })
-        // fetch(`/partial?${itemId}`)
-        //     .then((res) => res.text())
-        //     .then((text) => insertListItem(nextItemId, text))
+        fetch(`/partial?${itemId}`)
+            .then((res) => res.text())
+            .then((htmlText) => insertListItem(htmlText, listId, itemId, nextItemId))
     } else if (code === 'l') {
         const [listId, itemId] = data.slice(2).split(':')
-        console.log({ listId, itemId })
-        // fetch(`/partial?${itemId}`)
-        //     .then((res) => res.text())
-        //     .then((text) => insertListItemLast(listItemId, text))
+        fetch(`/partial?${itemId}`)
+            .then((res) => res.text())
+            .then((htmlText) => insertListItem(htmlText, listId, itemId))
     } else if (code === 'd') {
         const [listId, itemId] = data.slice(2).split(':')
-        console.log({ listId, itemId })
-        // destroyListItem(deleteId)
+        destroyListItem(listId, itemId)
     }
 })
