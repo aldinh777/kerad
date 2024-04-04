@@ -21,38 +21,25 @@ function startHttpServer() {
                 }
             } else if (pathname === '/trigger') {
                 const handlerId = url.search.slice(1)
-                const { status, data, error } = renderer.triggerEvent(handlerId)
-                const jsonHeader = { 'Content-Type': 'application/json' }
-                if (status === 'not found') {
-                    return new Response(JSON.stringify({ status: 'not found' }), { status: 404, headers: jsonHeader })
-                } else if (status === 'error') {
-                    const message = error instanceof Error ? error.message : error
-                    return new Response(JSON.stringify({ status: 'error', error: message }), {
-                        status: 500,
-                        headers: jsonHeader
-                    })
-                } else {
-                    return new Response(JSON.stringify({ status: 'success', data: data && JSON.parse(data) }), {
-                        headers: jsonHeader
-                    })
+                const result = renderer.triggerEvent(handlerId, await req.text())
+                switch (result) {
+                    case 'ok':
+                        return new Response('ok')
+                    case 'not found':
+                        return new Response('not found', { status: 404 })
+                    default:
+                        return new Response('error', { status: 500 })
                 }
             } else if (pathname === '/submit') {
                 const handlerId = url.search.slice(1)
-                const formData = await req.formData()
-                const { status, data, error } = renderer.submitForm(handlerId, formData)
-                const jsonHeader = { 'Content-Type': 'application/json' }
-                if (status === 'not found') {
-                    return new Response(JSON.stringify({ status: 'not found' }), { status: 404, headers: jsonHeader })
-                } else if (status === 'error') {
-                    const message = error instanceof Error ? error.message : error
-                    return new Response(JSON.stringify({ status: 'error', error: message }), {
-                        status: 500,
-                        headers: jsonHeader
-                    })
-                } else {
-                    return new Response(JSON.stringify({ status: 'success', data: data && JSON.parse(data) }), {
-                        headers: jsonHeader
-                    })
+                const result = renderer.submitForm(handlerId, await req.formData())
+                switch (result) {
+                    case 'ok':
+                        return new Response('ok')
+                    case 'not found':
+                        return new Response('not found', { status: 404 })
+                    default:
+                        return new Response('error', { status: 500 })
                 }
             }
             const jsxPath = join(import.meta.dir, '../../app/server', pathname, 'page.jsx')

@@ -22,11 +22,6 @@ interface StoredItem {
     item: RektNode | RektNode[]
     context: ServerContext
 }
-export interface TriggerResult {
-    status: 'success' | 'not found' | 'error'
-    data?: any
-    error?: any
-}
 
 export function createHasher(uniqueHandlers: UniqueHandlers) {
     // Connection Data
@@ -36,8 +31,8 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
     // List & Item Hash
     const listMap = new Map<WatchableList<any>, ListSubscriptionData>()
     // Trigger & Handler Hash
-    const handlerMap = new Map<() => any, SubscriptionData>()
-    const triggerMap = new Map<string, () => any>()
+    const handlerMap = new Map<(value: string) => any, SubscriptionData>()
+    const triggerMap = new Map<string, (value: string) => any>()
     // Form Handler Hash
     const formHandlerMap = new Map<(formData: FormData) => any, SubscriptionData>()
     const formSubmitMap = new Map<string, (formData: FormData) => any>()
@@ -139,7 +134,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
         }
         return listId
     }
-    function registerHandler(handler: () => any, context: ServerContext) {
+    function registerHandler(handler: (value?: string) => any, context: ServerContext) {
         if (!handlerMap.has(handler)) {
             const handlerId = randomString(6)
             handlerMap.set(handler, {
@@ -207,30 +202,30 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
     function getContext(list: WatchableList<any>, index: number) {
         return listMap.get(list)!.mappedList(index).context
     }
-    function triggerHandler(handlerId: string): TriggerResult {
+    function triggerHandler(handlerId: string, value: string) {
         if (triggerMap.has(handlerId)) {
             const handler = triggerMap.get(handlerId)
             try {
-                const data = handler!()
-                return { status: 'success', data: JSON.stringify(data) }
+                handler!(value)
+                return 'ok'
             } catch (error) {
-                return { status: 'error', error: error }
+                return error
             }
         } else {
-            return { status: 'not found' }
+            return 'not found'
         }
     }
     function submitForm(formId: string, formData: FormData) {
         if (formSubmitMap.has(formId)) {
             const handler = formSubmitMap.get(formId)
             try {
-                const data = handler!(formData)
-                return { status: 'success', data: JSON.stringify(data) }
+                handler!(formData)
+                return 'ok'
             } catch (error) {
-                return { status: 'error', error: error }
+                return error
             }
         } else {
-            return { status: 'not found' }
+            return 'not found'
         }
     }
 

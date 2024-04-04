@@ -153,7 +153,7 @@ async function renderLayout(jsxPath: string, req: Request, responseData: any) {
 
 export const renderer = {
     renderLayout: renderLayout,
-    triggerEvent: (handlerId: string) => hasher.triggerHandler(handlerId),
+    triggerEvent: (handlerId: string, value: string) => hasher.triggerHandler(handlerId, value),
     submitForm: (formId: string, data: FormData) => hasher.submitForm(formId, data),
     unsubscribe: (contextId: string) => hasher.unsubscribe(contextId)
 }

@@ -81,7 +81,13 @@ function bindTrigger(node: HTMLElement | Document) {
         const attribs = elem.getAttribute('rekt-t')!
         for (const propPair of attribs.split(' ')) {
             const [eventName, handlerId] = propPair.split(':')
-            elem.addEventListener(eventName, () => fetch(`/trigger?${handlerId}`, { method: 'post' }))
+            elem.addEventListener(eventName, () => {
+                if ('value' in elem) {
+                    fetch(`/trigger?${handlerId}`, { method: 'post', body: String(elem.value) })
+                } else {
+                    fetch(`/trigger?${handlerId}`, { method: 'post' })
+                }
+            })
         }
         elem.removeAttribute('rekt-t')
     }
