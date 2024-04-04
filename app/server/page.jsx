@@ -35,8 +35,8 @@ export default function Page(_props, context) {
                     ))}
                 </ul>
             </div>
-            <form on:submit={(formData) => todos.push(formData.get('todo'))}>
-                <input type="text" name="todo" value="" />
+            <form afterSubmit="reset" on:submit={(formData) => todos.push(formData.get('todo'))}>
+                <input type="text" name="todo" />
                 <button type="submit">submit</button>
             </form>
         </>

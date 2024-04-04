@@ -71,8 +71,15 @@ for (const elem of selectAll('[rekt-t]')) {
 for (const elem of selectAll('form[rekt-f]')) {
     const formId = elem.getAttribute('rekt-f')
     elem.addEventListener('submit', (ev: SubmitEvent) => {
-        const formData: any = new FormData(ev.currentTarget as HTMLFormElement)
+        const form = ev.currentTarget as HTMLFormElement
+        const formData: any = new FormData(form)
         fetch(`/submit?${formId}`, { method: 'post', body: formData })
+        const afterSubmit = form.getAttribute('afterSubmit')
+        for (const input of form.querySelectorAll('[name]') as unknown as HTMLInputElement[]) {
+            if (afterSubmit === 'reset' || input.getAttribute('afterSubmit') === 'reset') {
+                input.value = ''
+            }
+        }
         ev.preventDefault()
     })
     elem.removeAttribute('rekt-f')
