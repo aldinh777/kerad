@@ -11,8 +11,8 @@ interface StoredItem {
     context: RektContext
 }
 
-const text = (str: string) => document.createTextNode(str)
-const elem = (tag: string, props: RektProps, context: RektContext) => {
+export const text = (str: string = '') => document.createTextNode(str)
+export const elem = (tag: string, props: RektProps, context: RektContext) => {
     const el = document.createElement(tag)
     renderProps(el, props, context)
     return el
@@ -48,11 +48,11 @@ export async function renderDom(target: HTMLElement, item: RektNode | RektNode[]
             target.append(textNode)
             context.onMount(() => item.onChange((value) => (textNode.textContent = value)))
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
-            const listStart = text('')
-            const listEnd = text('')
+            const listStart = text()
+            const listEnd = text()
             const mappedList: ObservedList<StoredItem> = maplist(item, () => ({
-                itemStart: text(''),
-                itemEnd: text(''),
+                itemStart: text(),
+                itemEnd: text(),
                 item: item,
                 context: createContext()
             }))

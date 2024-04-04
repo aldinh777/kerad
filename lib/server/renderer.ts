@@ -16,21 +16,21 @@ const hasher = createHasher({
             async update(_index, { item, context }, prev) {
                 const rendered = await renderToHtml(item, context)
                 http.registerPartial(context.id, rendered)
-                ws.pushListUpdate(connectionMap.keys(), context.id, prev.context.id)
+                ws.pushListUpdate(connectionMap.keys(), listId, context.id, prev.context.id)
             },
             async insert(index, { item, context }) {
                 const rendered = await renderToHtml(item, context)
                 const isLast = index >= mappedList().length - 1
-                const insertBeforeId = isLast ? listId : mappedList(index + 1).context.id
+                const next = mappedList(index + 1)
                 http.registerPartial(context.id, rendered)
                 if (isLast) {
-                    ws.pushListInsertLast(connectionMap.keys(), context.id, insertBeforeId)
+                    ws.pushListInsertLast(connectionMap.keys(), listId, context.id)
                 } else {
-                    ws.pushListInsert(connectionMap.keys(), context.id, insertBeforeId)
+                    ws.pushListInsert(connectionMap.keys(), listId, context.id, next.context.id)
                 }
             },
             delete(_index, { context }) {
-                ws.pushListDelete(connectionMap.keys(), context.id)
+                ws.pushListDelete(connectionMap.keys(), listId, context.id)
                 context.dismount()
             }
         })
@@ -102,10 +102,10 @@ async function renderToHtml(item: RektNode | RektNode[], context: ServerContext)
                 item().map(async (value, index) => {
                     const context = hasher.getContext(item, index)
                     const content = await renderToHtml(value, context)
-                    return `<rekt ib="${context.id}"></rekt>${content}<rekt ie="${context.id}"></rekt>`
+                    return `<rekt i="${context.id}">${content}</rekt>`
                 })
             )
-            return `<rekt lb="${listId}"></rekt>${childrenOutput.join('')}<rekt le="${listId}"></rekt>`
+            return `<rekt l="${listId}">${childrenOutput.join('')}</rekt>`
         }
     } else if (typeof item === 'object' && 'tag' in item && 'props' in item) {
         const { tag, props } = item

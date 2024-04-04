@@ -47,16 +47,16 @@ export const ws = {
     pushStateChange(topics: Iterable<string>, value: string, stateId: string) {
         publish(topics, 'c', stateId, value)
     },
-    pushListUpdate(topics: Iterable<string>, itemId: string, prevId: string) {
-        publish(topics, 'u', itemId, prevId)
+    pushListUpdate(topics: Iterable<string>, listId: string, itemId: string, prevId: string) {
+        publish(topics, 'u', listId, itemId, prevId)
     },
-    pushListInsert(topics: Iterable<string>, itemId: string, insertBeforeId: string) {
-        publish(topics, 'u', itemId, insertBeforeId)
+    pushListInsert(topics: Iterable<string>, listId: string, itemId: string, insertBeforeId: string) {
+        publish(topics, 'i', listId, itemId, insertBeforeId)
     },
-    pushListInsertLast(topics: Iterable<string>, itemId: string, insertBeforeId: string) {
-        publish(topics, 'ie', itemId, insertBeforeId)
+    pushListInsertLast(topics: Iterable<string>, listId: string, itemId: string) {
+        publish(topics, 'l', listId, itemId)
     },
-    pushListDelete(topics: Iterable<string>, itemId: string) {
-        publish(topics, 'd', itemId)
+    pushListDelete(topics: Iterable<string>, listId: string, itemId: string) {
+        publish(topics, 'd', listId, itemId)
     }
 }
