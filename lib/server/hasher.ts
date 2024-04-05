@@ -22,6 +22,10 @@ interface StoredItem {
     item: RektNode | RektNode[]
     context: ServerContext
 }
+interface PartialData {
+    content: string
+    connectionSet: Set<string>
+}
 interface IdGenerator {
     next(): string
     delete(id: string): void
@@ -57,6 +61,8 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
     // Form Handler Hash
     const formHandlerMap = new Map<(formData: FormData) => any, SubscriptionData>()
     const formSubmitMap = new Map<string, (formData: FormData) => any>()
+    // Partial Map
+    const partialMap = new Map<string, PartialData>()
     // Id Generators
     const connectionIdGenerator = createIdGenerator()
     const stateIdGenerator = createIdGenerator()
@@ -229,6 +235,12 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
         }
         return formId
     }
+    function registerPartial(partialId: string, output: string, connectionSet: Set<string>) {
+        partialMap.set(partialId, { content: output, connectionSet })
+    }
+    function unregisterPartial(partialId: string) {
+        partialMap.delete(partialId)
+    }
     function unsubscribe(connectionId: string) {
         if (contextConnectionMap.has(connectionId)) {
             const context = contextConnectionMap.get(connectionId)!
@@ -266,6 +278,17 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
             return 'not found'
         }
     }
+    function renderPartial(partialId: string, connectionId: string | null) {
+        if (!partialMap.has(partialId)) {
+            return { result: 'not found' }
+        }
+        const { connectionSet, content } = partialMap.get(partialId)!
+        if (connectionId && connectionSet.has(connectionId)) {
+            return { result: 'ok', content }
+        } else {
+            return { result: 'unauthorized' }
+        }
+    }
 
     return {
         generateContext,
@@ -274,10 +297,13 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
         registerList,
         registerHandler,
         registerFormHandler,
+        registerPartial,
+        unregisterPartial,
         unsubscribe,
         getContext,
         triggerHandler,
-        submitForm
+        submitForm,
+        renderPartial
     }
 }
 

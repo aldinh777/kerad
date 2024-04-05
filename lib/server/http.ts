@@ -2,7 +2,6 @@ import { join } from 'path'
 import { renderer } from './renderer'
 
 const PORT = process.env['HTTP_PORT'] || 3000
-const partialMap = new Map<string, { content: string; connectionSet: Set<string> }>()
 
 function startHttpServer() {
     const server = Bun.serve({
@@ -13,14 +12,16 @@ function startHttpServer() {
             if (pathname === '/partial') {
                 const partialId = url.search.slice(1)
                 const connectionId = req.headers.get('Connection-ID')
-                if (!partialMap.has(partialId)) {
-                    return new Response('not found', { status: 404 })
-                }
-                const { content, connectionSet } = partialMap.get(partialId)!
-                if (connectionId && connectionSet.has(connectionId)) {
-                    return new Response(content, { headers: { 'Content-Type': 'text/html' } })
-                } else {
-                    return new Response('unauthorized', { status: 401 })
+                const { result, content } = renderer.renderPartial(partialId, connectionId)
+                switch (result) {
+                    case 'ok':
+                        return new Response(content, { headers: { 'Content-Type': 'text/html' } })
+                    case 'not found':
+                        return new Response('not found', { status: 404 })
+                    case 'unauthorized':
+                        return new Response('unauthorized', { status: 401 })
+                    default:
+                        return new Response('error', { status: 500 })
                 }
             } else if (pathname === '/trigger') {
                 const handlerId = url.search.slice(1)
@@ -76,11 +77,5 @@ function startHttpServer() {
 }
 
 export const http = {
-    startServer: startHttpServer,
-    registerPartial(partialId: string, output: string, connectionSet: Set<string>) {
-        partialMap.set(partialId, { content: output, connectionSet })
-    },
-    unregisterPartial(partialId: string) {
-        partialMap.delete(partialId)
-    }
+    startServer: startHttpServer
 }

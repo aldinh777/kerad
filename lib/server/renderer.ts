@@ -2,7 +2,6 @@ import type { RektNode, RektProps, ServerContext } from '../common/jsx-runtime'
 import type { State } from '@aldinh777/reactive'
 import { join } from 'path'
 import { createHasher, md5Hash } from './hasher'
-import { http } from './http'
 import { ws } from './ws'
 
 const hasher = createHasher({
@@ -16,8 +15,8 @@ const hasher = createHasher({
             async update(_index, { item, context }, prev) {
                 const rendered = await renderToHtml(item, context)
                 const partialId = `${listId}-${context.id}`
-                http.registerPartial(partialId, rendered, new Set(connectionMap.keys()))
-                context.onDismount(() => http.unregisterPartial(partialId))
+                hasher.registerPartial(partialId, rendered, new Set(connectionMap.keys()))
+                context.onDismount(() => hasher.unregisterPartial(partialId))
                 ws.pushListUpdate(connectionMap.keys(), listId, context.id, prev.context.id)
             },
             async insert(index, { item, context }) {
@@ -25,8 +24,8 @@ const hasher = createHasher({
                 const isLast = index >= mappedList().length - 1
                 const next = mappedList(index + 1)
                 const partialId = `${listId}-${context.id}`
-                http.registerPartial(partialId, rendered, new Set(connectionMap.keys()))
-                context.onDismount(() => http.unregisterPartial(partialId))
+                hasher.registerPartial(partialId, rendered, new Set(connectionMap.keys()))
+                context.onDismount(() => hasher.unregisterPartial(partialId))
                 if (isLast) {
                     ws.pushListInsertLast(connectionMap.keys(), listId, context.id)
                 } else {
@@ -159,5 +158,6 @@ export const renderer = {
     renderLayout: renderLayout,
     triggerEvent: (handlerId: string, value: string) => hasher.triggerHandler(handlerId, value),
     submitForm: (formId: string, data: FormData) => hasher.submitForm(formId, data),
+    renderPartial: (partialId: string, connectionId: string | null) => hasher.renderPartial(partialId, connectionId),
     unsubscribe: (contextId: string) => hasher.unsubscribe(contextId)
 }
