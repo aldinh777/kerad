@@ -22,6 +22,27 @@ interface StoredItem {
     item: RektNode | RektNode[]
     context: ServerContext
 }
+interface IdGenerator {
+    next(): string
+    delete(id: string): void
+}
+
+function createIdGenerator(): IdGenerator {
+    const set = new Set<string>()
+    return {
+        next() {
+            let id = randomString()
+            while (set.has(id)) {
+                id += randomString()
+            }
+            set.add(id)
+            return id
+        },
+        delete(id: string) {
+            set.delete(id)
+        }
+    }
+}
 
 export function createHasher(uniqueHandlers: UniqueHandlers) {
     // Connection Data
@@ -36,8 +57,15 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
     // Form Handler Hash
     const formHandlerMap = new Map<(formData: FormData) => any, SubscriptionData>()
     const formSubmitMap = new Map<string, (formData: FormData) => any>()
-    function generateSubContext(parentContext: ServerContext) {
-        const contextId = randomString(6)
+    // Id Generators
+    const connectionIdGenerator = createIdGenerator()
+    const stateIdGenerator = createIdGenerator()
+    const listIdGenerator = createIdGenerator()
+    const triggerIdGenerator = createIdGenerator()
+    const formIdGenerator = createIdGenerator()
+
+    function generateSubContext(parentContext: ServerContext, itemIdGenerator: IdGenerator) {
+        const contextId = itemIdGenerator.next()
         const context: ServerContext = {
             id: contextId,
             connectionId: parentContext.connectionId,
@@ -50,11 +78,12 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
             },
             ...createContext()
         }
+        context.onDismount(() => itemIdGenerator.delete(contextId))
         parentContext.onDismount(() => context.dismount())
         return context
     }
     function generateContext(req: Request, resData: any) {
-        const contextId = randomString(6)
+        const contextId = connectionIdGenerator.next()
         const context: ServerContext = {
             id: contextId,
             connectionId: contextId,
@@ -74,7 +103,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
     }
     function registerState(state: State, context: ServerContext) {
         if (!stateMap.has(state)) {
-            const stateId = randomString(6)
+            const stateId = stateIdGenerator.next()
             const connectionMap = new Map<string, Set<string>>()
             stateMap.set(state, {
                 id: stateId,
@@ -95,6 +124,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
                     connectionMap.delete(context.connectionId)
                     if (connectionMap.size === 0) {
                         stateMap.delete(state)
+                        stateIdGenerator.delete(stateId)
                         unsubscribe?.()
                     }
                 }
@@ -104,9 +134,13 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
     }
     function registerList(list: WatchableList<any>, context: ServerContext) {
         if (!listMap.has(list)) {
-            const listId = randomString(6)
+            const listId = listIdGenerator.next()
             const connectionMap = new Map<string, Set<string>>()
-            const mappedList = maplist(list, (item) => ({ item: item, context: generateSubContext(context) }))
+            const itemIdGenerator = createIdGenerator()
+            const mappedList = maplist(list, (item) => ({
+                item: item,
+                context: generateSubContext(context, itemIdGenerator)
+            }))
             listMap.set(list, {
                 id: listId,
                 connectionMap: connectionMap,
@@ -127,6 +161,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
                     connectionMap.delete(context.connectionId)
                     if (connectionMap.size === 0) {
                         listMap.delete(list)
+                        listIdGenerator.delete(listId)
                         unsubscribe?.()
                     }
                 }
@@ -136,7 +171,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
     }
     function registerHandler(handler: (value?: string) => any, context: ServerContext) {
         if (!handlerMap.has(handler)) {
-            const handlerId = randomString(6)
+            const handlerId = triggerIdGenerator.next()
             handlerMap.set(handler, {
                 id: handlerId,
                 connectionMap: new Map()
@@ -157,6 +192,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
                     if (connectionMap.size === 0) {
                         handlerMap.delete(handler)
                         triggerMap.delete(handlerId)
+                        triggerIdGenerator.delete(handlerId)
                     }
                 }
             })
@@ -165,14 +201,14 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
     }
     function registerFormHandler(handler: (formData: FormData) => any, context: ServerContext) {
         if (!formHandlerMap.has(handler)) {
-            const formId = randomString(6)
+            const formId = formIdGenerator.next()
             formHandlerMap.set(handler, {
                 id: formId,
                 connectionMap: new Map()
             })
             formSubmitMap.set(formId, handler)
         }
-        const { id: handlerId, connectionMap } = formHandlerMap.get(handler)!
+        const { id: formId, connectionMap } = formHandlerMap.get(handler)!
         if (!connectionMap.has(context.connectionId)) {
             connectionMap.set(context.connectionId, new Set())
         }
@@ -185,17 +221,19 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
                     connectionMap.delete(context.connectionId)
                     if (connectionMap.size === 0) {
                         formHandlerMap.delete(handler)
-                        formSubmitMap.delete(handlerId)
+                        formSubmitMap.delete(formId)
+                        formIdGenerator.delete(formId)
                     }
                 }
             })
         }
-        return handlerId
+        return formId
     }
     function unsubscribe(connectionId: string) {
         if (contextConnectionMap.has(connectionId)) {
             const context = contextConnectionMap.get(connectionId)!
             contextConnectionMap.delete(connectionId)
+            connectionIdGenerator.delete(connectionId)
             context.dismount()
         }
     }

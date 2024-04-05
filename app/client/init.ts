@@ -45,6 +45,7 @@ function bindClientComponent(node: HTMLElement | Document, context: RektContext)
         const src = elem.getAttribute('src') + '.js' || ''
         import(src).then(async (Comp: { default: RektComponent }) => {
             const componentContext = createContext()
+            elem.innerHTML = ''
             renderDom(elem, await Comp.default({}, componentContext), context)
             context.onDismount(() => componentContext.dismount())
         })

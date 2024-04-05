@@ -11,7 +11,9 @@ export default function Page(_props, context) {
     return (
         <>
             <div>
-                <rekt type="client" src="./App"></rekt>
+                <rekt type="client" src="./App">
+                    <h3>Hello, world!</h3>
+                </rekt>
             </div>
             <div>
                 <h5>Global Counter: {globalCounter}</h5>
