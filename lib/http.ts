@@ -54,7 +54,7 @@ function startHttpServer() {
                         return new Response('error', { status: 500 })
                 }
             }
-            const jsxPath = join(import.meta.dir, '../../app/server', pathname, 'page.jsx')
+            const jsxPath = join(import.meta.dir, '../app/server', pathname, 'page.jsx')
             const jsxFile = Bun.file(jsxPath)
             if (await jsxFile.exists()) {
                 const resData: any = { headers: { 'Content-Type': 'text/html' } }
@@ -62,11 +62,11 @@ function startHttpServer() {
                 return new Response(html, resData)
             }
             const filename = pathname === '/' ? '/index.html' : pathname
-            const file = Bun.file(join(import.meta.dir, '../../app/static', filename))
+            const file = Bun.file(join(import.meta.dir, '../app/static', filename))
             if (await file.exists()) {
                 return new Response(file)
             }
-            const buildFile = Bun.file(join(import.meta.dir, '../../build', filename))
+            const buildFile = Bun.file(join(import.meta.dir, '../build', filename))
             if (await buildFile.exists()) {
                 return new Response(buildFile)
             }

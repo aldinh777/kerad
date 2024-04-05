@@ -1,9 +1,9 @@
-import type { RektComponent, RektContext } from '../../lib/common/jsx-runtime'
+import type { RektComponent, RektContext } from '@aldinh777/rekt-jsx/jsx-runtime'
 import { removeFromArray } from '@aldinh777/toolbox/array-operation'
-import { createContext } from '../../lib/common/jsx-runtime'
-import { renderDom, text } from '../../lib/client/rekt-dom'
-import { destroyElements, select, selectAll } from '../../lib/client/utils'
-import '../../lib/client/hot-reload'
+import { createContext } from '@aldinh777/rekt-jsx/jsx-runtime'
+import { renderDom, text } from './lib/rekt-dom'
+import { destroyElements, select, selectAll } from './lib/utils'
+import './lib/hot-reload'
 
 interface BindData {
     elem: any

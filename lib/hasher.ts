@@ -1,10 +1,10 @@
 import type { State } from '@aldinh777/reactive'
 import type { Unsubscribe } from '@aldinh777/reactive/utils/subscription'
-import type { RektNode, ServerContext } from '../common/jsx-runtime'
+import type { RektNode, ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
 import type { ObservedList, WatchableList } from '@aldinh777/reactive/collection/list'
 import { randomString } from '@aldinh777/toolbox/random'
 import { maplist } from '@aldinh777/reactive/collection/list/map'
-import { createContext } from '../common/jsx-runtime'
+import { createContext } from '@aldinh777/rekt-jsx/jsx-runtime'
 
 interface UniqueHandlers {
     state: (state: State, stateId: string, connectionMap: Map<string, Set<string>>) => Unsubscribe

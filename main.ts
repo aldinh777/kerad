@@ -1,7 +1,7 @@
-import { http } from './lib/server/http'
-import { ws } from './lib/server/ws'
-import './lib/server/bundler'
-import './lib/server/hot-reload'
+import { http } from './lib/http'
+import { ws } from './lib/ws'
+import './lib/bundler'
+import './lib/hot-reload'
 
 http.startServer()
 ws.startServer()

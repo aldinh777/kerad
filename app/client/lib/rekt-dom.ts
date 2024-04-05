@@ -1,6 +1,6 @@
-import type { RektProps, RektContext, RektNode } from '../common/jsx-runtime'
+import type { RektProps, RektContext, RektNode } from '@aldinh777/rekt-jsx/jsx-runtime'
 import type { ObservedList } from '@aldinh777/reactive/collection/list'
-import { createContext } from '../common/jsx-runtime'
+import { createContext } from '@aldinh777/rekt-jsx/jsx-runtime'
 import { maplist } from '@aldinh777/reactive/collection/list/map'
 import { destroyElements } from './utils'
 
