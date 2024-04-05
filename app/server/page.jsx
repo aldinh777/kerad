@@ -4,7 +4,11 @@ import { maplist } from '@aldinh777/reactive/collection/list/map'
 
 const globalCounter = state(0)
 const todos = list(['one', 'two', 'three'])
-
+const todosItems = maplist(todos, (item) => (
+    <li>
+        <button on:click={() => todos.splice(todos().indexOf(item), 1)}>x</button> {item}
+    </li>
+))
 export default function Page(_props, context) {
     const counter = state(0)
 
@@ -28,13 +32,7 @@ export default function Page(_props, context) {
             <h4>List Test</h4>
             <div>
                 <h4>Todos</h4>
-                <ul>
-                    {maplist(todos, (item) => (
-                        <li>
-                            <button on:click={() => todos.splice(todos().indexOf(item), 1)}>x</button> {item}
-                        </li>
-                    ))}
-                </ul>
+                <ul>{todosItems}</ul>
             </div>
             <form on:submit={(formData) => todos.push(formData.get('todo'))} afterSubmit="reset">
                 <input type="text" name="todo" />

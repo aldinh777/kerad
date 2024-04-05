@@ -2,7 +2,7 @@ import { join } from 'path'
 import { renderer } from './renderer'
 
 const PORT = process.env['HTTP_PORT'] || 3000
-const partialMap = new Map<string, string>()
+const partialMap = new Map<string, { content: string; connectionSet: Set<string> }>()
 
 function startHttpServer() {
     const server = Bun.serve({
@@ -11,16 +11,22 @@ function startHttpServer() {
             const url = new URL(req.url)
             const { pathname } = url
             if (pathname === '/partial') {
-                const itemId = url.search.slice(1)
-                if (partialMap.has(itemId)) {
-                    const content = partialMap.get(itemId)
-                    partialMap.delete(itemId)
+                const partialId = url.search.slice(1)
+                const connectionId = req.headers.get('Connection-ID')
+                if (!partialMap.has(partialId)) {
+                    return new Response('not found', { status: 404 })
+                }
+                const { content, connectionSet } = partialMap.get(partialId)!
+                if (connectionId && connectionSet.has(connectionId)) {
                     return new Response(content, { headers: { 'Content-Type': 'text/html' } })
                 } else {
-                    return new Response(null, { status: 404 })
+                    return new Response('unauthorized', { status: 401 })
                 }
             } else if (pathname === '/trigger') {
                 const handlerId = url.search.slice(1)
+                if (req.method !== 'POST') {
+                    return new Response('not allowed', { status: 405 })
+                }
                 const result = renderer.triggerEvent(handlerId, await req.text())
                 switch (result) {
                     case 'ok':
@@ -32,7 +38,12 @@ function startHttpServer() {
                 }
             } else if (pathname === '/submit') {
                 const handlerId = url.search.slice(1)
-                const result = renderer.submitForm(handlerId, await req.formData())
+                const [contentType] = req.headers.get('Content-Type')?.split(';') || []
+                if (!(req.method === 'POST' && contentType === 'multipart/form-data')) {
+                    return new Response('invalid', { status: 400 })
+                }
+                const formData = await req.formData()
+                const result = renderer.submitForm(handlerId, formData)
                 switch (result) {
                     case 'ok':
                         return new Response('ok')
@@ -66,8 +77,10 @@ function startHttpServer() {
 
 export const http = {
     startServer: startHttpServer,
-    registerPartial(itemId: string, output: string) {
-        partialMap.set(itemId, output)
-        setTimeout(() => partialMap.delete(itemId), 60_000)
+    registerPartial(partialId: string, output: string, connectionSet: Set<string>) {
+        partialMap.set(partialId, { content: output, connectionSet })
+    },
+    unregisterPartial(partialId: string) {
+        partialMap.delete(partialId)
     }
 }

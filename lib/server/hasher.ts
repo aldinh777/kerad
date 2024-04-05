@@ -31,7 +31,7 @@ function createIdGenerator(): IdGenerator {
     const set = new Set<string>()
     return {
         next() {
-            let id = randomString()
+            let id = randomString(3)
             while (set.has(id)) {
                 id += randomString()
             }
@@ -111,7 +111,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
                 unsubscribe: uniqueHandlers.state(state, stateId, connectionMap)
             })
         }
-        const { id: stateId, connectionMap: connectionMap, unsubscribe } = stateMap.get(state)!
+        const { id: stateId, connectionMap, unsubscribe } = stateMap.get(state)!
         if (!connectionMap.has(context.connectionId)) {
             connectionMap.set(context.connectionId, new Set())
         }
@@ -148,7 +148,7 @@ export function createHasher(uniqueHandlers: UniqueHandlers) {
                 mappedList: mappedList
             })
         }
-        const { id: listId, connectionMap: connectionMap, unsubscribe } = listMap.get(list)!
+        const { id: listId, connectionMap, unsubscribe } = listMap.get(list)!
         if (!connectionMap.has(context.connectionId)) {
             connectionMap.set(context.connectionId, new Set())
         }

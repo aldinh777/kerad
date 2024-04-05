@@ -15,14 +15,18 @@ const hasher = createHasher({
         const unsubWatch = mappedList.watch({
             async update(_index, { item, context }, prev) {
                 const rendered = await renderToHtml(item, context)
-                http.registerPartial(context.id, rendered)
+                const partialId = `${listId}-${context.id}`
+                http.registerPartial(partialId, rendered, new Set(connectionMap.keys()))
+                context.onDismount(() => http.unregisterPartial(partialId))
                 ws.pushListUpdate(connectionMap.keys(), listId, context.id, prev.context.id)
             },
             async insert(index, { item, context }) {
                 const rendered = await renderToHtml(item, context)
                 const isLast = index >= mappedList().length - 1
                 const next = mappedList(index + 1)
-                http.registerPartial(context.id, rendered)
+                const partialId = `${listId}-${context.id}`
+                http.registerPartial(partialId, rendered, new Set(connectionMap.keys()))
+                context.onDismount(() => http.unregisterPartial(partialId))
                 if (isLast) {
                     ws.pushListInsertLast(connectionMap.keys(), listId, context.id)
                 } else {
