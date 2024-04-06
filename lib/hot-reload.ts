@@ -2,7 +2,7 @@ import { join, relative } from 'path'
 import { watch } from 'fs'
 
 const server = Bun.serve({
-    port: 3101,
+    port: process.env['WSRELOAD_PORT'] || 3101,
     fetch(req, server) {
         const upgrade = server.upgrade(req)
         if (!upgrade) {

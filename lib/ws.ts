@@ -1,7 +1,7 @@
 import type { Server } from 'bun'
 import { renderer } from './renderer'
 
-const PORT = process.env['WEBSOCKET_PORT'] || 3100
+const PORT = process.env['WS_PORT'] || 3100
 
 interface WebSocketData {
     cid: string
