@@ -105,7 +105,7 @@ async function renderToHtml(item: RektNode | RektNode[], context: ServerContext)
                 item().map(async (value, index) => {
                     const listItem = hasher.getListItem(item, index)
                     const content = await renderToHtml(value, listItem.context)
-                    return `<rekt i="${context.id}">${content}</rekt>`
+                    return `<rekt i="${listItem.context.id}">${content}</rekt>`
                 })
             )
             return `<rekt l="${listId}">${childrenOutput.join('')}</rekt>`

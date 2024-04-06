@@ -9,7 +9,16 @@ function startHttpServer() {
         async fetch(req) {
             const url = new URL(req.url)
             const { pathname } = url
-            if (pathname === '/partial') {
+            if (pathname === '/port-data') {
+                return new Response(
+                    JSON.stringify({
+                        HTTP: PORT,
+                        WS: process.env['WS_PORT'] || 3100,
+                        WSRELOAD: process.env['WSRELOAD_PORT'] || 3101
+                    }),
+                    { headers: { 'Content-Type': 'application/json' } }
+                )
+            } else if (pathname === '/partial') {
                 const partialId = url.search.slice(1)
                 const connectionId = req.headers.get('Connection-ID')
                 const { result, content } = renderer.renderPartial(partialId, connectionId)
