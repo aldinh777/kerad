@@ -144,7 +144,7 @@ async function renderJsx(src: string, context: ServerContext) {
 }
 
 async function renderLayout(jsxPath: string, req: Request, responseData: any) {
-    const file = Bun.file(join(import.meta.dir, '../app/server', 'layout.html'))
+    const file = Bun.file(join(import.meta.dir, '../app/server', '+layout.html'))
     const html = await file.text()
     const context = hasher.generateContext(req, responseData)
     const jsxOutput = await renderJsx(jsxPath, context)
