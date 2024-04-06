@@ -1,10 +1,10 @@
 import type { RektNode, RektProps, ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
 import type { State } from '@aldinh777/reactive'
 import { join } from 'path'
-import { createHasher, md5Hash } from './hasher'
+import { hasher, md5Hash } from './hasher'
 import { ws } from './ws'
 
-const hasher = createHasher({
+hasher.setHandler({
     state(state, stateId, connectionMap) {
         return state.onChange((value) => {
             ws.pushStateChange(connectionMap.keys(), value, stateId)
@@ -103,8 +103,8 @@ async function renderToHtml(item: RektNode | RektNode[], context: ServerContext)
             const listId = hasher.registerList(item, context)
             const childrenOutput = await Promise.all(
                 item().map(async (value, index) => {
-                    const context = hasher.getContext(item, index)
-                    const content = await renderToHtml(value, context)
+                    const listItem = hasher.getListItem(item, index)
+                    const content = await renderToHtml(value, listItem.context)
                     return `<rekt i="${context.id}">${content}</rekt>`
                 })
             )
@@ -162,7 +162,7 @@ async function renderLayout(jsxPath: string, req: Request, responseData: any) {
     const page = await renderPage(jsxPath, context)
     return html
         .replace('%CONNECTION_ID%', context.id)
-        .replace('%TITLE%', page.metadata?.title || process.env['APP_TITLE'] || 'Rekt Application')
+        .replace('%APP_TITLE%', page.metadata?.title || process.env['APP_TITLE'] || 'Rekt Application')
         .replace('%RENDER_SLOT%', page.content)
 }
 
