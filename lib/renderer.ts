@@ -132,14 +132,26 @@ async function renderToHtml(item: RektNode | RektNode[], context: ServerContext)
     return String(item)
 }
 
-async function renderJsx(src: string, context: ServerContext) {
+interface PageResult {
+    content: string
+    metadata?: {
+        title?: string
+    }
+}
+
+async function renderPage(src: string, context: ServerContext): Promise<PageResult> {
     src += '?checksum=' + (await md5Hash(src))
     const component = await import(src)
     try {
         const result = await component.default({}, context)
-        return renderToHtml(result, context)
+        return {
+            content: await renderToHtml(result, context),
+            metadata: result.metadata
+        }
     } catch (error) {
-        return `<pre>${error instanceof Error ? error.stack : error}</pre>`
+        return {
+            content: `<pre>${error instanceof Error ? error.stack : error}</pre>`
+        }
     }
 }
 
@@ -147,11 +159,11 @@ async function renderLayout(jsxPath: string, req: Request, responseData: any) {
     const file = Bun.file(join(import.meta.dir, '../app/server', '+layout.html'))
     const html = await file.text()
     const context = hasher.generateContext(req, responseData)
-    const jsxOutput = await renderJsx(jsxPath, context)
+    const page = await renderPage(jsxPath, context)
     return html
-        .replace('%COMPONENT_ENTRY%', jsxOutput)
-        .replace('%APP_TITLE%', process.env['APP_TITLE'] as string)
         .replace('%CONNECTION_ID%', context.id)
+        .replace('%TITLE%', page.metadata?.title || process.env['APP_TITLE'] || 'Rekt Application')
+        .replace('%RENDER_SLOT%', page.content)
 }
 
 export const renderer = {
