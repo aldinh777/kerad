@@ -12,14 +12,17 @@ function startWebsocketServer() {
     server = Bun.serve<WebSocketData>({
         port: PORT,
         fetch(req, server) {
-            const cid = new URL(req.url).pathname.slice(1)
-            if (!cid) {
-                return new Response('Invalid Path :(', { status: 404 })
+            const url = new URL(req.url)
+            const cid = url.search.slice(1)
+            if (url.pathname === '/connect' && cid) {
+                const upgrade = server.upgrade(req, { data: { cid } })
+                if (!upgrade) {
+                    return new Response('Upgrade failed :(', { status: 500 })
+                } else {
+                    return new Response(null, { status: 101 })
+                }
             }
-            const upgrade = server.upgrade(req, { data: { cid } })
-            if (!upgrade) {
-                return new Response('Upgrade failed :(', { status: 500 })
-            }
+            return new Response('Invalid Path :(', { status: 404 })
         },
         websocket: {
             open(socket) {

@@ -2,7 +2,6 @@ import type { RektProps, RektContext, RektNode } from '@aldinh777/rekt-jsx/jsx-r
 import type { ObservedList } from '@aldinh777/reactive/collection/list'
 import { createContext } from '@aldinh777/rekt-jsx/jsx-runtime'
 import { maplist } from '@aldinh777/reactive/collection/list/map'
-import { destroyElements } from './utils'
 
 interface StoredItem {
     itemStart: Text
@@ -16,6 +15,19 @@ export const elem = (tag: string, props: RektProps, context: RektContext) => {
     const el = document.createElement(tag)
     renderProps(el, props, context)
     return el
+}
+
+export const select = (query: string, node: HTMLElement | Document = document) => node.querySelector(query)
+export const selectAll = (query: string, node: HTMLElement | Document = document) =>
+    node.querySelectorAll(query) as unknown as HTMLElement[]
+
+export function destroyElements(startMarker: any, endMarker: any) {
+    while (startMarker !== endMarker) {
+        const node = startMarker
+        startMarker = startMarker.nextSibling!
+        node.remove()
+    }
+    endMarker?.remove()
 }
 
 function renderProps(elem: HTMLElement, props: RektProps, context: RektContext) {
