@@ -9,7 +9,12 @@ const todosItems = maplist(todos, (item) => (
         <button on:click={() => todos.splice(todos().indexOf(item), 1)}>x</button> {item}
     </li>
 ))
-export default function Page(_props, context) {
+
+export const metadata = {
+    title: 'Rekt Main Page'
+}
+
+export default function MainPage(_props, context) {
     const counter = state(0)
 
     return (

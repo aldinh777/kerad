@@ -146,7 +146,7 @@ async function renderPage(src: string, context: ServerContext): Promise<PageResu
         const result = await component.default({}, context)
         return {
             content: await renderToHtml(result, context),
-            metadata: result.metadata
+            metadata: component.metadata
         }
     } catch (error) {
         return {
