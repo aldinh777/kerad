@@ -1,7 +1,6 @@
 import type { RektNode, RektProps, ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
 import type { State } from '@aldinh777/reactive'
-import { join } from 'path'
-import { hasher, md5Hash } from './hasher'
+import { hasher } from './hasher'
 import { ws } from './ws'
 
 hasher.setHandler({
@@ -132,42 +131,17 @@ async function renderToHtml(item: RektNode | RektNode[], context: ServerContext)
     return String(item)
 }
 
-interface PageResult {
-    content: string
-    metadata?: {
-        title?: string
-    }
-}
-
-async function renderPage(src: string, context: ServerContext): Promise<PageResult> {
-    src += '?checksum=' + (await md5Hash(src))
-    const component = await import(src)
-    try {
-        const result = await component.default({}, context)
-        return {
-            content: await renderToHtml(result, context),
-            metadata: component.metadata
-        }
-    } catch (error) {
-        return {
-            content: `<pre>${error instanceof Error ? error.stack : error}</pre>`
-        }
-    }
-}
-
-async function renderLayout(jsxPath: string, req: Request, responseData: any) {
-    const file = Bun.file(join(import.meta.dir, '../app/server', '+layout.html'))
-    const html = await file.text()
-    const context = hasher.generateContext(req, responseData)
-    const page = await renderPage(jsxPath, context)
-    return html
-        .replace('%CONNECTION_ID%', context.id)
-        .replace('%APP_TITLE%', page.metadata?.title || process.env['APP_TITLE'] || 'Rekt Application')
-        .replace('%RENDER_SLOT%', page.content)
+async function renderPage(layout: string, component: any, context: ServerContext): Promise<string> {
+    const result = await component.default({}, context)
+    const html = await renderToHtml(result, context)
+    return layout
+        .replace('%TITLE%', component.metadata?.title || 'Rekt Application')
+        .replace('%CID%', context.connectionId)
+        .replace('%SLOT%', html)
 }
 
 export const renderer = {
-    renderLayout: renderLayout,
+    renderPage: renderPage,
     triggerEvent: (handlerId: string, value: string) => hasher.triggerHandler(handlerId, value),
     submitForm: (formId: string, data: FormData) => hasher.submitForm(formId, data),
     renderPartial: (partialId: string, connectionId: string | null) => hasher.renderPartial(partialId, connectionId),

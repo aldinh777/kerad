@@ -75,7 +75,7 @@ const listIdGenerator = createIdGenerator()
 const triggerIdGenerator = createIdGenerator()
 const formIdGenerator = createIdGenerator()
 
-function generateSubContext(parentContext: ServerContext, itemIdGenerator: IdGenerator) {
+function createSubContext(parentContext: ServerContext, itemIdGenerator: IdGenerator) {
     const contextId = itemIdGenerator.next()
     const context: ServerContext = {
         id: contextId,
@@ -94,7 +94,7 @@ function generateSubContext(parentContext: ServerContext, itemIdGenerator: IdGen
     return context
 }
 
-function generateContext(req: Request, resData: any) {
+function createServerContext(req: Request, resData: any, params: any) {
     const contextId = connectionIdGenerator.next()
     const context: ServerContext = {
         id: contextId,
@@ -108,6 +108,7 @@ function generateContext(req: Request, resData: any) {
             resData.status &&= status
             resData.status &&= statusText
         },
+        params: params,
         ...createContext()
     }
     contextConnectionMap.set(contextId, context)
@@ -170,7 +171,7 @@ function registerList(list: WatchableList<any>, context: ServerContext) {
             const itemIdGenerator = createIdGenerator()
             const mappedList = maplist(list, (item) => ({
                 item: item,
-                context: generateSubContext(context, itemIdGenerator)
+                context: createSubContext(context, itemIdGenerator)
             }))
             return {
                 id: listId,
@@ -276,19 +277,12 @@ function renderPartial(partialId: string, connectionId: string | null) {
     }
 }
 
-export async function md5Hash(filename: string) {
-    const hasher = new Bun.CryptoHasher('md5')
-    const file = Bun.file(filename)
-    hasher.update(await file.arrayBuffer())
-    return hasher.digest('hex')
-}
-
 export const hasher = {
     setHandler(handler: UniqueHandlers) {
         uniqueHandlers.state = handler.state
         uniqueHandlers.list = handler.list
     },
-    generateContext: generateContext,
+    createServerContext: createServerContext,
     registerState: registerState,
     registerList: registerList,
     registerHandler: registerTriggerHandler,

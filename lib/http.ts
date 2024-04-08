@@ -1,5 +1,7 @@
 import { join } from 'path'
 import { renderer } from './renderer'
+import { routing } from './routing'
+import { hasher } from './hasher'
 
 const PORT = process.env['HTTP_PORT'] || 3000
 
@@ -63,21 +65,22 @@ function startHttpServer() {
                         return new Response('error', { status: 500 })
                 }
             }
-            const pageExactPath = join(import.meta.dir, '../app/server', pathname, '+page.jsx')
-            const jsxFile = Bun.file(pageExactPath)
-            if (await jsxFile.exists()) {
-                const resData: any = { headers: { 'Content-Type': 'text/html' } }
-                const html = await renderer.renderLayout(pageExactPath, req, resData)
-                return new Response(html, resData)
-            }
-            const indexFile = pathname === '/' ? '/index.html' : pathname
-            const file = Bun.file(join(import.meta.dir, '../app/static', indexFile))
+            const filename = pathname === '/' ? '/index.html' : pathname
+            const file = Bun.file(join(import.meta.dir, '../app/static', filename))
             if (await file.exists()) {
                 return new Response(file)
             }
-            const buildFile = Bun.file(join(import.meta.dir, '../build', indexFile))
+            const buildFile = Bun.file(join(import.meta.dir, '../build', filename))
             if (await buildFile.exists()) {
                 return new Response(buildFile)
+            }
+            const rootPath = join(import.meta.dir, '../app/server')
+            const pageHandlers = await routing.parseRouting(rootPath, pathname)
+            if (pageHandlers.status === 'page') {
+                const responseData = { headers: { 'Content-Type': 'text/html' } }
+                const context = hasher.createServerContext(req, responseData, pageHandlers.params)
+                const page = await renderer.renderPage(pageHandlers.layout, pageHandlers.page, context)
+                return new Response(page, responseData)
             }
             return new Response('Not Found', { status: 404 })
         }
