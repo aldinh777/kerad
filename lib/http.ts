@@ -1,7 +1,6 @@
 import { join } from 'path'
 import { renderer } from './renderer'
 import { routing } from './routing'
-import { hasher } from './hasher'
 
 const PORT = process.env['HTTP_PORT'] || 3000
 
@@ -12,14 +11,11 @@ function startHttpServer() {
             const url = new URL(req.url)
             const { pathname } = url
             if (pathname === '/port-data') {
-                return new Response(
-                    JSON.stringify({
-                        HTTP: PORT,
-                        WS: process.env['WS_PORT'] || 3100,
-                        WSRELOAD: process.env['WSRELOAD_PORT'] || 3101
-                    }),
-                    { headers: { 'Content-Type': 'application/json' } }
-                )
+                return Response.json({
+                    HTTP: PORT,
+                    WS: process.env['WS_PORT'] || 3100,
+                    WSRELOAD: process.env['WSRELOAD_PORT'] || 3101
+                })
             } else if (pathname === '/partial') {
                 const partialId = url.search.slice(1)
                 const connectionId = req.headers.get('Connection-ID')
@@ -75,12 +71,12 @@ function startHttpServer() {
                 return new Response(buildFile)
             }
             const rootPath = join(import.meta.dir, '../app/server')
-            const pageHandlers = await routing.parseRouting(rootPath, pathname)
-            if (pageHandlers.status === 'page') {
-                const responseData = { headers: { 'Content-Type': 'text/html' } }
-                const context = hasher.createServerContext(req, responseData, pageHandlers.params)
-                const page = await renderer.renderPage(pageHandlers.layout, pageHandlers.page, context)
-                return new Response(page, responseData)
+            const page = await routing.parseRouting(rootPath, pathname, req)
+            if (page.status === 'page') {
+                const htmlOutput = await renderer.renderPage(page.layout, page.component, page.context)
+                return new Response(htmlOutput, page.context.data.response)
+            } else if (page.status === 'response') {
+                return page.response
             }
             return new Response('Not Found', { status: 404 })
         }

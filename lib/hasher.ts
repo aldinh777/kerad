@@ -81,6 +81,7 @@ function createSubContext(parentContext: ServerContext, itemIdGenerator: IdGener
         id: contextId,
         connectionId: parentContext.connectionId,
         request: parentContext.request,
+        data: parentContext.data,
         setHeader(name: string, value: string): void {
             parentContext.setHeader(name, value)
         },
@@ -94,21 +95,23 @@ function createSubContext(parentContext: ServerContext, itemIdGenerator: IdGener
     return context
 }
 
-function createServerContext(req: Request, resData: any, params: any) {
+function createServerContext(req: Request, data: any) {
     const contextId = connectionIdGenerator.next()
     const context: ServerContext = {
         id: contextId,
         connectionId: contextId,
         request: req,
+        data: data,
         setHeader: function (name: string, value: string): void {
-            resData.headers ??= {}
-            resData.headers[name] = value
+            data.response ??= {}
+            data.response.headers ??= {}
+            data.response.headers[name] = value
         },
         setStatus: function (status: number, statusText: string): void {
-            resData.status &&= status
-            resData.status &&= statusText
+            data.response ??= {}
+            data.response.status ??= status
+            data.response.status ??= statusText
         },
-        params: params,
         ...createContext()
     }
     contextConnectionMap.set(contextId, context)
