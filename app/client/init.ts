@@ -39,6 +39,9 @@ async function initSocket() {
         } else if (code === 'd') {
             const [listId, itemId] = data.slice(2).split(':')
             destroyListItem(listId, itemId)
+        } else if (code === 'r') {
+            const redirectUrl = data.slice(2)
+            location.href = redirectUrl
         }
     })
 }

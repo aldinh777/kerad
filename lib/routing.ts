@@ -2,6 +2,7 @@ import type { ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
 import { join } from 'path'
 import { readdir } from 'fs/promises'
 import { hasher } from './hasher'
+import { ws } from './ws'
 
 type RouteResult =
     | {
@@ -87,6 +88,7 @@ async function parseRouting(root: string, path: string, req: Request): Promise<R
         ).reduce((html, next) => html.replace('%SLOT%', next))
         const component = await md5HashImport(pagePath)
         context.setHeader('Content-Type', 'text/html')
+        context.data.sendRedirect = (url: string) => ws.pushRedirect(context.connectionId, url)
         return { status: 'page', layout: layout, component: component, params: params, context: context }
     }
     return { status: 'not_found', info: 'no +page.jsx file found' }

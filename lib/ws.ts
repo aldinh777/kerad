@@ -61,5 +61,8 @@ export const ws = {
     },
     pushListDelete(topics: Iterable<string>, listId: string, itemId: string) {
         publish(topics, 'd', listId, itemId)
+    },
+    pushRedirect(topic: string, url: string) {
+        publish([topic], 'r', url)
     }
 }
