@@ -11,7 +11,7 @@ async function bundle(updated?: string) {
     const files = await readdir(clientPath, { recursive: true })
 
     await Bun.build({
-        entrypoints: [entry, ...files.filter((file) => file.endsWith('.jsx')).map((jsx) => join(clientPath, jsx))],
+        entrypoints: [entry, ...files.filter((file) => file.endsWith('.tsx')).map((tsx) => join(clientPath, tsx))],
         outdir: outDir,
         splitting: true
     })

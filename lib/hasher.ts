@@ -1,9 +1,9 @@
 import type { State } from '@aldinh777/reactive'
 import type { Unsubscribe } from '@aldinh777/reactive/utils/subscription'
 import type { RektNode, ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
-import type { ObservedList, WatchableList } from '@aldinh777/reactive/collection/list'
+import type { ObservedList, WatchableList } from '@aldinh777/reactive/list/watchable'
 import { randomString } from '@aldinh777/toolbox/random'
-import { maplist } from '@aldinh777/reactive/collection/list/map'
+import { map } from '@aldinh777/reactive/list/utils'
 import { createContext } from '@aldinh777/rekt-jsx/jsx-runtime'
 
 interface UniqueHandlers {
@@ -172,7 +172,7 @@ function registerList(list: WatchableList<any>, context: ServerContext) {
             const listId = listIdGenerator.next()
             const connectionMap = new Map<string, Set<string>>()
             const itemIdGenerator = createIdGenerator()
-            const mappedList = maplist(list, (item) => ({
+            const mappedList = map(list, (item) => ({
                 item: item,
                 context: createSubContext(context, itemIdGenerator)
             }))

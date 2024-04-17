@@ -1,10 +1,10 @@
 import { state } from '@aldinh777/reactive'
-import { list } from '@aldinh777/reactive/collection/list'
-import { maplist } from '@aldinh777/reactive/collection/list/map'
+import { list } from '@aldinh777/reactive/list'
+import { map } from '@aldinh777/reactive/list/utils'
 
 const globalCounter = state(0)
 const todos = list(['one', 'two', 'three'])
-const todosItems = maplist(todos, (item) => (
+const todosItems = map(todos, (item) => (
     <li>
         <button on:click={() => todos.splice(todos().indexOf(item), 1)}>x</button> {item}
     </li>
@@ -14,7 +14,7 @@ export const metadata = {
     title: 'Rekt Main Page'
 }
 
-export default function MainPage(_props, context) {
+export default function MainPage() {
     const counter = state(0)
 
     return (
@@ -39,7 +39,15 @@ export default function MainPage(_props, context) {
                 <h4>Todos</h4>
                 <ul>{todosItems}</ul>
             </div>
-            <form on:submit={(formData) => todos.push(formData.get('todo'))} afterSubmit="reset">
+            <form
+                on:submit={(formData: FormData) => {
+                    const next = formData.get('todo')
+                    if (next) {
+                        todos.push(next as string)
+                    }
+                }}
+                afterSubmit="reset"
+            >
                 <input type="text" name="todo" />
                 <button type="submit">submit</button>
             </form>

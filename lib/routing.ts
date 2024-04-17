@@ -81,8 +81,8 @@ async function parseRouting(root: string, path: string, req: Request): Promise<R
             return { status: 'response', response: result }
         }
     }
-    if (res.includes('+page.jsx')) {
-        const pagePath = join(root, '+page.jsx')
+    if (res.includes('+page.tsx')) {
+        const pagePath = join(root, '+page.tsx')
         const layout = (
             await Promise.all(layoutChains.map((path) => Bun.file(path)).map((file) => file.text()))
         ).reduce((html, next) => html.replace('%SLOT%', next))
@@ -91,7 +91,7 @@ async function parseRouting(root: string, path: string, req: Request): Promise<R
         context.data.sendRedirect = (url: string) => ws.pushRedirect(context.connectionId, url)
         return { status: 'page', layout: layout, component: component, params: params, context: context }
     }
-    return { status: 'not_found', info: 'no +page.jsx file found' }
+    return { status: 'not_found', info: 'no +page.tsx file found' }
 }
 
 export const routing = {

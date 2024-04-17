@@ -1,7 +1,7 @@
 import type { RektProps, RektContext, RektNode } from '@aldinh777/rekt-jsx/jsx-runtime'
-import type { ObservedList } from '@aldinh777/reactive/collection/list'
+import type { ObservedList } from '@aldinh777/reactive/list/watchable'
 import { createContext } from '@aldinh777/rekt-jsx/jsx-runtime'
-import { maplist } from '@aldinh777/reactive/collection/list/map'
+import { map } from '@aldinh777/reactive/list/utils'
 
 interface StoredItem {
     itemStart: Text
@@ -62,7 +62,7 @@ export async function renderDom(target: HTMLElement, item: RektNode | RektNode[]
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
             const listStart = text()
             const listEnd = text()
-            const mappedList: ObservedList<StoredItem> = maplist(item, () => ({
+            const mappedList: ObservedList<StoredItem> = map(item, () => ({
                 itemStart: text(),
                 itemEnd: text(),
                 item: item,
