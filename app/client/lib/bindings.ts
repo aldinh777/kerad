@@ -36,7 +36,8 @@ function setBinding(stateId: string, elem: any, type: 'bind' | 'attr', value: st
 }
 
 function bindClientComponent(node: HTMLElement | Document, context: RektContext) {
-    for (const elem of selectAll('rekt[type="client"]', node)) {
+    for (const elem of selectAll('rekt-client[src]', node)) {
+        console.log(elem)
         const src = elem.getAttribute('src') + '.js' || ''
         import(src).then(async (Comp: { default: RektComponent }) => {
             const componentContext = createContext()
