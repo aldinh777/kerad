@@ -47,48 +47,56 @@ function renderProps(elem: HTMLElement, props: RektProps, context: RektContext) 
     }
 }
 
+function insertIfBefore(target: HTMLElement, item: Text | HTMLElement, before?: Text) {
+    if (before) {
+        target.insertBefore(item, before)
+    } else {
+        target.append(item)
+    }
+}
+
 export async function renderDom(target: HTMLElement, item: RektNode | RektNode[], context: RektContext, before?: Text) {
     if (item instanceof Array) {
         for (const nested of item) {
             await renderDom(target, nested, context, before)
         }
     } else if (typeof item === 'string') {
-        target.append(item)
+        insertIfBefore(target, text(item), before)
     } else if (typeof item === 'function') {
         if ('onChange' in item) {
             const textNode = text(item())
-            target.append(textNode)
+            insertIfBefore(target, textNode, before)
             context.onMount(() => item.onChange((value) => (textNode.textContent = value)))
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
             const listStart = text()
             const listEnd = text()
-            const mappedList: ObservedList<StoredItem> = map(item, () => ({
+            const mappedList: ObservedList<StoredItem> = map(item, (listItem) => ({
                 itemStart: text(),
                 itemEnd: text(),
-                item: item,
+                item: listItem,
                 context: createContext()
             }))
-            target.append(listStart)
+            insertIfBefore(target, listStart, before)
             for (const { item: listItem, context: itemContext, itemStart, itemEnd } of mappedList()) {
-                target.append(itemStart)
-                await renderDom(target, listItem, itemContext)
-                target.append(itemEnd)
+                insertIfBefore(target, itemStart, before)
+                await renderDom(target, listItem, itemContext, before)
+                insertIfBefore(target, itemEnd, before)
             }
-            target.append(listEnd)
+            insertIfBefore(target, listEnd, before)
             context.onMount(() => {
                 const unsubWatch = mappedList.watch({
                     async update(_index, current, prev) {
-                        target.append(current.itemStart)
+                        target.insertBefore(current.itemStart, prev.itemStart)
                         await renderDom(target, current.item, context, prev.itemStart)
-                        target.append(current.itemEnd)
+                        target.insertBefore(current.itemEnd, prev.itemStart)
                         destroyElements(prev.itemStart, prev.itemEnd)
                     },
                     async insert(index, { item: listItem, context, itemStart, itemEnd }) {
                         const isLast = index >= mappedList().length - 1
                         const marker = isLast ? listEnd : itemStart
-                        target.append(itemStart)
+                        target.insertBefore(itemStart, marker)
                         await renderDom(target, listItem, context, marker)
-                        target.append(itemEnd)
+                        target.insertBefore(itemEnd, marker)
                     },
                     delete(_index, { context, itemStart, itemEnd }) {
                         destroyElements(itemStart, itemEnd)
@@ -111,9 +119,9 @@ export async function renderDom(target: HTMLElement, item: RektNode | RektNode[]
             if (props.children !== undefined) {
                 await renderDom(parent, props.children, context)
             }
-            target.append(parent)
+            insertIfBefore(target, parent, before)
         } else {
-            await renderDom(target, await tag(props, context), context)
+            await renderDom(target, await tag(props, context), context, before)
         }
     } else {
         await renderDom(target, String(item), context, before)
