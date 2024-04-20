@@ -1,7 +1,11 @@
-import { http } from './lib/http'
-import { ws } from './lib/ws'
-import './lib/bundler'
-import './lib/hot-reload'
+import * as http from './lib/http'
+import * as ws from './lib/ws'
 
-http.startServer()
-ws.startServer()
+http.startHttpServer()
+ws.startWebsocketServer()
+
+import * as bundler from './lib/bundler'
+import * as hr from './lib/hot-reload'
+
+bundler.watchBundle()
+hr.startHotReloadServer()

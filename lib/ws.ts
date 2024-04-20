@@ -1,5 +1,5 @@
 import type { Server } from 'bun'
-import { renderer } from './renderer'
+import * as registry from './registry'
 
 const PORT = process.env['WS_PORT'] || 3100
 
@@ -8,7 +8,8 @@ interface WebSocketData {
 }
 
 let server: Server
-function startWebsocketServer() {
+
+export function startWebsocketServer() {
     server = Bun.serve<WebSocketData>({
         port: PORT,
         fetch(req, server) {
@@ -32,7 +33,7 @@ function startWebsocketServer() {
             close(socket) {
                 const { cid } = socket.data
                 socket.unsubscribe(cid)
-                renderer.unsubscribe(cid)
+                registry.unregisterConnection(cid)
             }
         }
     })
@@ -45,24 +46,26 @@ function publish(topics: Iterable<string>, ...payloads: string[]) {
     }
 }
 
-export const ws = {
-    startServer: startWebsocketServer,
-    pushStateChange(topics: Iterable<string>, value: string, stateId: string) {
-        publish(topics, 'c', stateId, value)
-    },
-    pushListUpdate(topics: Iterable<string>, listId: string, itemId: string, prevId: string) {
-        publish(topics, 'u', listId, itemId, prevId)
-    },
-    pushListInsert(topics: Iterable<string>, listId: string, itemId: string, insertBeforeId: string) {
-        publish(topics, 'i', listId, itemId, insertBeforeId)
-    },
-    pushListInsertLast(topics: Iterable<string>, listId: string, itemId: string) {
-        publish(topics, 'l', listId, itemId)
-    },
-    pushListDelete(topics: Iterable<string>, listId: string, itemId: string) {
-        publish(topics, 'd', listId, itemId)
-    },
-    pushRedirect(topic: string, url: string) {
-        publish([topic], 'r', url)
-    }
+export function pushStateChange(topics: Iterable<string>, value: string, stateId: string) {
+    publish(topics, 'c', stateId, value)
+}
+
+export function pushListUpdate(topics: Iterable<string>, listId: string, itemId: string, prevId: string) {
+    publish(topics, 'u', listId, itemId, prevId)
+}
+
+export function pushListInsert(topics: Iterable<string>, listId: string, itemId: string, insertBeforeId: string) {
+    publish(topics, 'i', listId, itemId, insertBeforeId)
+}
+
+export function pushListInsertLast(topics: Iterable<string>, listId: string, itemId: string) {
+    publish(topics, 'l', listId, itemId)
+}
+
+export function pushListDelete(topics: Iterable<string>, listId: string, itemId: string) {
+    publish(topics, 'd', listId, itemId)
+}
+
+export function pushRedirect(topic: string, url: string) {
+    publish([topic], 'r', url)
 }

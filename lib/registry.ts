@@ -95,7 +95,7 @@ function createSubContext(parentContext: ServerContext, itemIdGenerator: IdGener
     return context
 }
 
-function createServerContext(req: Request, data: any) {
+export function createServerContext(req: Request, data: any) {
     const contextId = connectionIdGenerator.next()
     const context: ServerContext = {
         id: contextId,
@@ -149,7 +149,7 @@ function handleContextData<T>(
     return id
 }
 
-function registerState(state: State, context: ServerContext) {
+export function registerState(state: State, context: ServerContext) {
     return handleContextData(context, stateMap, state, {
         onCreate() {
             const stateId = stateIdGenerator.next()
@@ -166,7 +166,7 @@ function registerState(state: State, context: ServerContext) {
     })
 }
 
-function registerList(list: WatchableList<any>, context: ServerContext) {
+export function registerList(list: WatchableList<any>, context: ServerContext) {
     return handleContextData(context, listMap, list, {
         onCreate() {
             const listId = listIdGenerator.next()
@@ -189,7 +189,7 @@ function registerList(list: WatchableList<any>, context: ServerContext) {
     })
 }
 
-function registerTriggerHandler(handler: (value?: string) => any, context: ServerContext) {
+export function registerTriggerHandler(handler: (value?: string) => any, context: ServerContext) {
     return handleContextData(context, handlerMap, handler, {
         onCreate() {
             const handlerId = triggerIdGenerator.next()
@@ -206,7 +206,7 @@ function registerTriggerHandler(handler: (value?: string) => any, context: Serve
     })
 }
 
-function registerFormHandler(formHandler: (formData: FormData) => any, context: ServerContext) {
+export function registerFormHandler(formHandler: (formData: FormData) => any, context: ServerContext) {
     return handleContextData(context, formHandlerMap, formHandler, {
         onCreate() {
             const formId = formIdGenerator.next()
@@ -223,15 +223,15 @@ function registerFormHandler(formHandler: (formData: FormData) => any, context: 
     })
 }
 
-function registerPartial(partialId: string, output: string, connectionSet: Set<string>) {
+export function registerPartial(partialId: string, output: string, connectionSet: Set<string>) {
     partialMap.set(partialId, { content: output, connectionSet })
 }
 
-function unregisterPartial(partialId: string) {
+export function unregisterPartial(partialId: string) {
     partialMap.delete(partialId)
 }
 
-function unsubscribe(connectionId: string) {
+export function unregisterConnection(connectionId: string) {
     if (contextConnectionMap.has(connectionId)) {
         const context = contextConnectionMap.get(connectionId)!
         contextConnectionMap.delete(connectionId)
@@ -240,11 +240,11 @@ function unsubscribe(connectionId: string) {
     }
 }
 
-function getListItem(list: WatchableList<any>, index: number) {
+export function getListItem(list: WatchableList<any>, index: number) {
     return listMap.get(list)!.mappedList(index)
 }
 
-function triggerHandler(handlerId: string, value: string) {
+export function triggerHandler(handlerId: string, value: string) {
     if (!triggerMap.has(handlerId)) {
         return 'not found'
     }
@@ -256,7 +256,7 @@ function triggerHandler(handlerId: string, value: string) {
     }
 }
 
-function submitForm(formId: string, formData: FormData) {
+export function submitForm(formId: string, formData: FormData) {
     if (!formSubmitMap.has(formId)) {
         return 'not found'
     }
@@ -268,7 +268,7 @@ function submitForm(formId: string, formData: FormData) {
     }
 }
 
-function renderPartial(partialId: string, connectionId: string | null) {
+export function renderPartial(partialId: string, connectionId: string | null) {
     if (!partialMap.has(partialId)) {
         return { result: 'not found' }
     }
@@ -280,21 +280,7 @@ function renderPartial(partialId: string, connectionId: string | null) {
     }
 }
 
-export const hasher = {
-    setHandler(handler: UniqueHandlers) {
-        uniqueHandlers.state = handler.state
-        uniqueHandlers.list = handler.list
-    },
-    createServerContext: createServerContext,
-    registerState: registerState,
-    registerList: registerList,
-    registerHandler: registerTriggerHandler,
-    registerFormHandler: registerFormHandler,
-    registerPartial: registerPartial,
-    unregisterPartial: unregisterPartial,
-    unsubscribe: unsubscribe,
-    getListItem: getListItem,
-    triggerHandler: triggerHandler,
-    submitForm: submitForm,
-    renderPartial: renderPartial
+export function setHandler(handler: UniqueHandlers) {
+    uniqueHandlers.state = handler.state
+    uniqueHandlers.list = handler.list
 }

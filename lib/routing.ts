@@ -1,8 +1,8 @@
 import type { ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
 import { join } from 'path'
 import { readdir } from 'fs/promises'
-import { hasher } from './hasher'
-import { ws } from './ws'
+import * as registry from './registry'
+import * as ws from './ws'
 
 type RouteResult =
     | {
@@ -30,12 +30,12 @@ async function md5HashImport(filename: string) {
     return await import(filename)
 }
 
-async function parseRouting(root: string, path: string, req: Request): Promise<RouteResult> {
+export async function parseRouting(root: string, path: string, req: Request): Promise<RouteResult> {
     const paths = path.slice(1).split('/')
     const params: any = {}
     const layoutChains: string[] = []
     const data: any = { params: params }
-    const context = hasher.createServerContext(req, data)
+    const context = registry.createServerContext(req, data)
     for (const pathname of paths) {
         let match = false
         const nextRoot = join(root, pathname)
@@ -92,8 +92,4 @@ async function parseRouting(root: string, path: string, req: Request): Promise<R
         return { status: 'page', layout: layout, component: component, params: params, context: context }
     }
     return { status: 'not_found', info: 'no +page.tsx file found' }
-}
-
-export const routing = {
-    parseRouting: parseRouting
 }

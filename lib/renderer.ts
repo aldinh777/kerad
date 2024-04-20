@@ -1,9 +1,9 @@
 import type { RektNode, RektProps, ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
 import type { State } from '@aldinh777/reactive'
-import { hasher } from './hasher'
-import { ws } from './ws'
+import * as registry from './registry'
+import * as ws from './ws'
 
-hasher.setHandler({
+registry.setHandler({
     state(state, stateId, connectionMap) {
         return state.onChange((value) => {
             ws.pushStateChange(connectionMap.keys(), value, stateId)
@@ -14,8 +14,8 @@ hasher.setHandler({
             async update(_index, { item, context }, prev) {
                 const rendered = await renderToHtml(item, context)
                 const partialId = `${listId}-${context.id}`
-                hasher.registerPartial(partialId, rendered, new Set(connectionMap.keys()))
-                context.onDismount(() => hasher.unregisterPartial(partialId))
+                registry.registerPartial(partialId, rendered, new Set(connectionMap.keys()))
+                context.onDismount(() => registry.unregisterPartial(partialId))
                 ws.pushListUpdate(connectionMap.keys(), listId, context.id, prev.context.id)
             },
             async insert(index, { item, context }) {
@@ -23,8 +23,8 @@ hasher.setHandler({
                 const isLast = index >= mappedList().length - 1
                 const next = mappedList(index + 1)
                 const partialId = `${listId}-${context.id}`
-                hasher.registerPartial(partialId, rendered, new Set(connectionMap.keys()))
-                context.onDismount(() => hasher.unregisterPartial(partialId))
+                registry.registerPartial(partialId, rendered, new Set(connectionMap.keys()))
+                context.onDismount(() => registry.unregisterPartial(partialId))
                 if (isLast) {
                     ws.pushListInsertLast(connectionMap.keys(), listId, context.id)
                 } else {
@@ -62,16 +62,16 @@ function renderProps(props: RektProps, context: ServerContext) {
         } else if (prop.startsWith('bind:')) {
             const propName = prop.slice(5)
             if (isReactive(value)) {
-                reactiveBinds.push([propName, hasher.registerState(value, context)])
+                reactiveBinds.push([propName, registry.registerState(value, context)])
                 strProps += ` ${propName}="${value()}"`
             } else {
                 strProps += ` ${propName}="${value}"`
             }
         } else if (prop.startsWith('on:')) {
             const eventName = prop.slice(3)
-            eventsProps.push([eventName, hasher.registerHandler(value, context)])
+            eventsProps.push([eventName, registry.registerTriggerHandler(value, context)])
         } else if (isReactive(value)) {
-            reactiveProps.push([prop, hasher.registerState(value, context)])
+            reactiveProps.push([prop, registry.registerState(value, context)])
             strProps += ` ${prop}="${value()}"`
         } else {
             strProps += ` ${prop}="${value}"`
@@ -97,12 +97,12 @@ async function renderToHtml(item: RektNode | RektNode[], context: ServerContext)
         return item
     } else if (typeof item === 'function') {
         if ('onChange' in item) {
-            return `<rekt s="${hasher.registerState(item, context)}">${item()}</rekt>`
+            return `<rekt s="${registry.registerState(item, context)}">${item()}</rekt>`
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
-            const listId = hasher.registerList(item, context)
+            const listId = registry.registerList(item, context)
             const childrenOutput = await Promise.all(
                 item().map(async (value, index) => {
-                    const listItem = hasher.getListItem(item, index)
+                    const listItem = registry.getListItem(item, index)
                     const content = await renderToHtml(value, listItem.context)
                     return `<rekt i="${listItem.context.id}">${content}</rekt>`
                 })
@@ -114,7 +114,7 @@ async function renderToHtml(item: RektNode | RektNode[], context: ServerContext)
         if (typeof tag === 'string') {
             if (tag === 'form' && typeof props['on:submit'] === 'function') {
                 const submitHandler = props['on:submit']
-                const formId = hasher.registerFormHandler(submitHandler, context)
+                const formId = registry.registerFormHandler(submitHandler, context)
                 props['rekt-f'] = formId
                 delete props['on:submit']
             }
@@ -131,19 +131,11 @@ async function renderToHtml(item: RektNode | RektNode[], context: ServerContext)
     return String(item)
 }
 
-async function renderPage(layout: string, component: any, context: ServerContext): Promise<string> {
+export async function renderPage(layout: string, component: any, context: ServerContext): Promise<string> {
     const result = await component.default({}, context)
     const html = await renderToHtml(result, context)
     return layout
         .replace('%TITLE%', component.metadata?.title || 'Rekt Application')
         .replace('%CID%', context.connectionId)
         .replace('%SLOT%', html)
-}
-
-export const renderer = {
-    renderPage: renderPage,
-    triggerEvent: (handlerId: string, value: string) => hasher.triggerHandler(handlerId, value),
-    submitForm: (formId: string, data: FormData) => hasher.submitForm(formId, data),
-    renderPartial: (partialId: string, connectionId: string | null) => hasher.renderPartial(partialId, connectionId),
-    unsubscribe: (contextId: string) => hasher.unsubscribe(contextId)
 }

@@ -1,10 +1,11 @@
 import { join } from 'path'
-import { renderer } from './renderer'
-import { routing } from './routing'
+import * as registry from './registry'
+import * as renderer from './renderer'
+import * as routing from './routing'
 
 const PORT = process.env['HTTP_PORT'] || 3000
 
-function startHttpServer() {
+export function startHttpServer() {
     const server = Bun.serve({
         port: PORT,
         async fetch(req) {
@@ -19,7 +20,7 @@ function startHttpServer() {
             } else if (pathname === '/partial') {
                 const partialId = url.search.slice(1)
                 const connectionId = req.headers.get('Connection-ID')
-                const { result, content } = renderer.renderPartial(partialId, connectionId)
+                const { result, content } = registry.renderPartial(partialId, connectionId)
                 switch (result) {
                     case 'ok':
                         return new Response(content, { headers: { 'Content-Type': 'text/html' } })
@@ -35,7 +36,7 @@ function startHttpServer() {
                 if (req.method !== 'POST') {
                     return new Response('not allowed', { status: 405 })
                 }
-                const result = renderer.triggerEvent(handlerId, await req.text())
+                const result = registry.triggerHandler(handlerId, await req.text())
                 switch (result) {
                     case 'ok':
                         return new Response('ok')
@@ -51,7 +52,7 @@ function startHttpServer() {
                     return new Response('invalid', { status: 400 })
                 }
                 const formData = await req.formData()
-                const result = renderer.submitForm(handlerId, formData)
+                const result = registry.submitForm(handlerId, formData)
                 switch (result) {
                     case 'ok':
                         return new Response('ok')
@@ -82,8 +83,4 @@ function startHttpServer() {
         }
     })
     console.log(`http server running at http://${server.hostname}:${server.port}`)
-}
-
-export const http = {
-    startServer: startHttpServer
 }
