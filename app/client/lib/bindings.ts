@@ -17,6 +17,9 @@ interface ListElementData extends ElementBorderData {
     items: Map<string, ElementBorderData>
 }
 
+const TRIGGER_ENDPOINT = '/rekt/trigger'
+const SUBMIT_ENDPOINT = 'rekt/submit'
+
 const stateBindings = new Map<string, BindData[]>()
 const listBindings = new Map<string, ListElementData>()
 
@@ -79,9 +82,9 @@ function bindTrigger(node: HTMLElement | Document) {
             const [eventName, handlerId] = propPair.split(':')
             elem.addEventListener(eventName, () => {
                 if ('value' in elem) {
-                    fetch(`/trigger?${handlerId}`, { method: 'post', body: String(elem.value) })
+                    fetch(`${TRIGGER_ENDPOINT}?id=${handlerId}`, { method: 'post', body: String(elem.value) })
                 } else {
-                    fetch(`/trigger?${handlerId}`, { method: 'post' })
+                    fetch(`${TRIGGER_ENDPOINT}?id=${handlerId}`, { method: 'post' })
                 }
             })
         }
@@ -95,7 +98,7 @@ function bindForm(node: HTMLElement | Document) {
         elem.addEventListener('submit', (ev: SubmitEvent) => {
             const form = ev.currentTarget as HTMLFormElement
             const formData: any = new FormData(form)
-            fetch(`/submit?${formId}`, { method: 'post', body: formData })
+            fetch(`${SUBMIT_ENDPOINT}?id=${formId}`, { method: 'post', body: formData })
             const afterSubmit = form.getAttribute('afterSubmit')
             for (const input of selectAll('[name]', form) as unknown as HTMLInputElement[]) {
                 if (afterSubmit === 'reset' || input.getAttribute('afterSubmit') === 'reset') {

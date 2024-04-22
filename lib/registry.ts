@@ -246,25 +246,25 @@ export function getListItem(list: WatchableList<any>, index: number) {
 
 export function triggerHandler(handlerId: string, value: string) {
     if (!triggerMap.has(handlerId)) {
-        return 'not found'
+        return { result: 'not found' }
     }
     try {
         triggerMap.get(handlerId)!(value)
-        return 'ok'
+        return { result: 'ok' }
     } catch (error) {
-        return error
+        return { result: 'error', error }
     }
 }
 
 export function submitForm(formId: string, formData: FormData) {
     if (!formSubmitMap.has(formId)) {
-        return 'not found'
+        return { result: 'not found' }
     }
     try {
         formSubmitMap.get(formId)!(formData)
-        return 'ok'
+        return { result: 'ok' }
     } catch (error) {
-        return error
+        return { result: 'error', error }
     }
 }
 
@@ -274,13 +274,13 @@ export function renderPartial(partialId: string, connectionId: string | null) {
     }
     const { connectionSet, content } = partialMap.get(partialId)!
     if (connectionId && connectionSet.has(connectionId)) {
-        return { result: 'ok', content }
+        return { result: 'partial', content }
     } else {
         return { result: 'unauthorized' }
     }
 }
 
-export function setHandler(handler: UniqueHandlers) {
+export function setRegistryHandler(handler: UniqueHandlers) {
     uniqueHandlers.state = handler.state
     uniqueHandlers.list = handler.list
 }

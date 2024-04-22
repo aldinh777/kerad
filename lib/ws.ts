@@ -1,5 +1,5 @@
 import type { Server } from 'bun'
-import * as registry from './registry'
+import { unregisterConnection } from './registry'
 
 const PORT = process.env['WS_PORT'] || 3100
 
@@ -14,7 +14,7 @@ export function startWebsocketServer() {
         port: PORT,
         fetch(req, server) {
             const url = new URL(req.url)
-            const cid = url.search.slice(1)
+            const cid = url.searchParams.get('cid')
             if (url.pathname === '/connect' && cid) {
                 const upgrade = server.upgrade(req, { data: { cid } })
                 if (!upgrade) {
@@ -33,7 +33,7 @@ export function startWebsocketServer() {
             close(socket) {
                 const { cid } = socket.data
                 socket.unsubscribe(cid)
-                registry.unregisterConnection(cid)
+                unregisterConnection(cid)
             }
         }
     })

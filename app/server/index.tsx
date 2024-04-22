@@ -1,7 +1,7 @@
 import { state } from '@aldinh777/reactive'
 import { list } from '@aldinh777/reactive/list'
 import { map } from '@aldinh777/reactive/list/utils'
-import Counter from './Counter'
+import Counter from './components/Counter'
 
 const globalCounter = state(0)
 const todos = list(['one', 'two', 'three'])

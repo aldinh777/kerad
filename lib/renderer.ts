@@ -3,7 +3,7 @@ import type { State } from '@aldinh777/reactive'
 import * as registry from './registry'
 import * as ws from './ws'
 
-registry.setHandler({
+registry.setRegistryHandler({
     state(state, stateId, connectionMap) {
         return state.onChange((value) => {
             ws.pushStateChange(connectionMap.keys(), value, stateId)
@@ -137,5 +137,5 @@ export async function renderPage(layout: string, component: any, context: Server
     return layout
         .replace('%TITLE%', component.metadata?.title || 'Rekt Application')
         .replace('%CID%', context.connectionId)
-        .replace('%SLOT%', html)
+        .replace('%PAGE%', html)
 }
