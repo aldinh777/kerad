@@ -86,7 +86,7 @@ export async function routeUrl(req: Request, url: URL = new URL(req.url)): Promi
 
         // execute and return middleware response if there is any
         if (items.includes('middleware.ts')) {
-            const middlewareFile = join(routeDir, '+middleware.ts')
+            const middlewareFile = join(routeDir, 'middleware.ts')
             const middleware = await md5HashImport(middlewareFile)
             const res = await middleware.default(context)
             if (res) {
