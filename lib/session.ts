@@ -4,7 +4,7 @@ import { randomString } from '@aldinh777/toolbox/random'
 const cookieSessions = new Map<string, SessionData>()
 
 class SessionData extends Map {
-    getOrDefault(key: string, defaultValue: string) {
+    getOrDefault<T>(key: any, defaultValue: T): T {
         if (this.has(key)) {
             return this.get(key)
         }

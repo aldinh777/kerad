@@ -1,3 +1,4 @@
+import type { Server } from 'bun'
 import { join } from 'path'
 import { readdir } from 'fs/promises'
 import * as registry from './registry'
@@ -60,11 +61,11 @@ export async function handleStaticFile(pathname: string) {
     }
 }
 
-export async function routeUrl(req: Request, url: URL = new URL(req.url)): Promise<Response> {
+export async function routeUrl(req: Request, server: Server, url: URL = new URL(req.url)): Promise<Response> {
     const urlArray = url.pathname === '/' ? [''] : url.pathname.split('/')
     const params: any = {}
     const layoutStack: string[] = []
-    const contextData: any = { params: params }
+    const contextData: any = { server, params }
     const context = registry.createServerContext(req, contextData)
     let routeDir = ROUTE_PATH
 

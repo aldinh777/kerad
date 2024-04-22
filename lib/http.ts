@@ -1,14 +1,14 @@
+import type { Server } from 'bun'
 import * as routing from './routing'
 
 const PORT = process.env['HTTP_PORT'] || 3000
 
 export function startHttpServer() {
-    const server = Bun.serve({
+    const server: Server = Bun.serve({
         port: PORT,
         async fetch(req) {
             const url = new URL(req.url)
             const { pathname, searchParams } = url
-
             switch (pathname) {
                 case '/rekt/port-data':
                     return Response.json({
@@ -40,7 +40,7 @@ export function startHttpServer() {
                     if (fileResponse) {
                         return fileResponse
                     }
-                    return await routing.routeUrl(req, url)
+                    return await routing.routeUrl(req, server, url)
             }
         }
     })
