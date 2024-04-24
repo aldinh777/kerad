@@ -8,7 +8,7 @@ declare global {
 
 const WATCH_DIRS = ['../app', '../lib', '../main.ts']
 
-export function startHotReloadServer() {
+export function watchAndReload() {
     if (!globalThis.hotReloadWatched) {
         console.log('hot reload enabled, watching : ')
         for (const path of WATCH_DIRS) {
