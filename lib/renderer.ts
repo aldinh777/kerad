@@ -1,12 +1,12 @@
 import type { RektNode, RektProps, ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
 import type { State } from '@aldinh777/reactive'
 import * as registry from './registry'
-import * as ws from './ws'
+import * as sse from './sse'
 
 registry.setRegistryHandler({
     state(state, stateId, connectionMap) {
         return state.onChange((value) => {
-            ws.pushStateChange(connectionMap.keys(), value, stateId)
+            sse.pushStateChange(connectionMap.keys(), value, stateId)
         })
     },
     list(mappedList, listId, connectionMap) {
@@ -16,7 +16,7 @@ registry.setRegistryHandler({
                 const partialId = `${listId}-${context.id}`
                 registry.registerPartial(partialId, rendered, new Set(connectionMap.keys()))
                 context.onDismount(() => registry.unregisterPartial(partialId))
-                ws.pushListUpdate(connectionMap.keys(), listId, context.id, prev.context.id)
+                sse.pushListUpdate(connectionMap.keys(), listId, context.id, prev.context.id)
             },
             async insert(index, { item, context }) {
                 const rendered = await renderToHtml(item, context)
@@ -26,13 +26,13 @@ registry.setRegistryHandler({
                 registry.registerPartial(partialId, rendered, new Set(connectionMap.keys()))
                 context.onDismount(() => registry.unregisterPartial(partialId))
                 if (isLast) {
-                    ws.pushListInsertLast(connectionMap.keys(), listId, context.id)
+                    sse.pushListInsertLast(connectionMap.keys(), listId, context.id)
                 } else {
-                    ws.pushListInsert(connectionMap.keys(), listId, context.id, next.context.id)
+                    sse.pushListInsert(connectionMap.keys(), listId, context.id, next.context.id)
                 }
             },
             delete(_index, { context }) {
-                ws.pushListDelete(connectionMap.keys(), listId, context.id)
+                sse.pushListDelete(connectionMap.keys(), listId, context.id)
                 context.dismount()
             }
         })

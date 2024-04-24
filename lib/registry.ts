@@ -95,29 +95,6 @@ function createSubContext(parentContext: ServerContext, itemIdGenerator: IdGener
     return context
 }
 
-export function createServerContext(req: Request, data: any) {
-    const contextId = connectionIdGenerator.next()
-    const context: ServerContext = {
-        id: contextId,
-        connectionId: contextId,
-        request: req,
-        data: data,
-        setHeader: function (name: string, value: string): void {
-            data.response ??= {}
-            data.response.headers ??= {}
-            data.response.headers[name] = value
-        },
-        setStatus: function (status: number, statusText: string): void {
-            data.response ??= {}
-            data.response.status ??= status
-            data.response.status ??= statusText
-        },
-        ...createContext()
-    }
-    contextConnectionMap.set(contextId, context)
-    return context
-}
-
 function handleContextData<T>(
     context: ServerContext,
     map: Map<T, SubscriptionData>,
@@ -147,6 +124,29 @@ function handleContextData<T>(
         })
     }
     return id
+}
+
+export function registerConnection(req: Request, data: any) {
+    const contextId = connectionIdGenerator.next()
+    const context: ServerContext = {
+        id: contextId,
+        connectionId: contextId,
+        request: req,
+        data: data,
+        setHeader: function (name: string, value: string): void {
+            data.response ??= {}
+            data.response.headers ??= {}
+            data.response.headers[name] = value
+        },
+        setStatus: function (status: number, statusText: string): void {
+            data.response ??= {}
+            data.response.status ??= status
+            data.response.status ??= statusText
+        },
+        ...createContext()
+    }
+    contextConnectionMap.set(contextId, context)
+    return context
 }
 
 export function registerState(state: State, context: ServerContext) {
@@ -227,8 +227,8 @@ export function registerPartial(partialId: string, output: string, connectionSet
     partialMap.set(partialId, { content: output, connectionSet })
 }
 
-export function unregisterPartial(partialId: string) {
-    partialMap.delete(partialId)
+export function hasConnection(connectionId: string) {
+    return contextConnectionMap.has(connectionId)
 }
 
 export function unregisterConnection(connectionId: string) {
@@ -238,6 +238,10 @@ export function unregisterConnection(connectionId: string) {
         connectionIdGenerator.delete(connectionId)
         context.dismount()
     }
+}
+
+export function unregisterPartial(partialId: string) {
+    partialMap.delete(partialId)
 }
 
 export function getListItem(list: WatchableList<any>, index: number) {

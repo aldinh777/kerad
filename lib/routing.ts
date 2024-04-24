@@ -2,7 +2,7 @@ import type { Server } from 'bun'
 import { join } from 'path'
 import { readdir } from 'fs/promises'
 import * as registry from './registry'
-import { pushRedirect } from './ws'
+import { pushRedirect } from './sse'
 import { renderPage } from './renderer'
 
 export const ROUTE_PATH = join(import.meta.dir, '../app/server')
@@ -66,7 +66,7 @@ export async function routeUrl(req: Request, server: Server, url: URL = new URL(
     const params: any = {}
     const layoutStack: string[] = []
     const contextData: any = { server, params }
-    const context = registry.createServerContext(req, contextData)
+    const context = registry.registerConnection(req, contextData)
     let routeDir = ROUTE_PATH
 
     const restStack = []
@@ -147,7 +147,7 @@ export async function routeUrl(req: Request, server: Server, url: URL = new URL(
         )
         const component = await md5HashImport(pageFilePath)
         context.setHeader('Content-Type', 'text/html')
-        context.data.sendRedirect = (url: string) => pushRedirect(context.connectionId, url)
+        context.data.sendRedirect = (url?: string) => pushRedirect(context.connectionId, url)
         const renderOutput = await renderPage(htmlLayout, component, context)
         return new Response(renderOutput, context.data.response)
     }

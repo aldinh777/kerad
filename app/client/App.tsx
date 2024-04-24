@@ -1,5 +1,5 @@
 import type { RektContext, RektProps } from '@aldinh777/rekt-jsx/jsx-runtime'
-import { mutated } from '@aldinh777/reactive/utils'
+import { computed } from '@aldinh777/reactive/utils'
 import { randomItem } from '@aldinh777/toolbox/random'
 import { state } from '@aldinh777/reactive'
 
@@ -9,7 +9,7 @@ const randomColor = () => randomItem(['red', 'green', 'blue', 'yellow'])
 export default function (_: RektProps, context: RektContext) {
     const who = state(randomName())
     const color = state(randomColor())
-    const styleColor = mutated(() => `color: ${color()}`)
+    const styleColor = computed(() => `color: ${color()}`)
 
     context.setInterval(1000, () => {
         who(randomName())

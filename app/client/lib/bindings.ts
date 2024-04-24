@@ -111,7 +111,7 @@ function bindForm(node: HTMLElement | Document) {
     }
 }
 
-export function bindRecursive(node: HTMLElement | Document, context: RektContext) {
+export function bindRecursive(node: HTMLElement | Document, context: RektContext = createContext()) {
     let listElement
     while ((listElement = select('rekt[l]', node))) {
         const listId = listElement.getAttribute('l')!

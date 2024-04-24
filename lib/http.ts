@@ -1,5 +1,6 @@
 import type { Server } from 'bun'
 import * as routing from './routing'
+import { serveSSE } from './sse'
 
 const PORT = process.env['HTTP_PORT'] || 3000
 
@@ -10,12 +11,9 @@ export function startHttpServer() {
             const url = new URL(req.url)
             const { pathname, searchParams } = url
             switch (pathname) {
-                case '/rekt/port-data':
-                    return Response.json({
-                        HTTP: PORT,
-                        WS: process.env['WS_PORT'] || 3100,
-                        WSRELOAD: process.env['WSRELOAD_PORT'] || 3101
-                    })
+                case '/rekt/events':
+                    const cid = searchParams.get('cid')!
+                    return serveSSE(req, cid)
                 case '/rekt/partial':
                     const partialId = searchParams.get('id')!
                     const connectionId = req.headers.get('Connection-ID')!
