@@ -1,7 +1,10 @@
 import type { Server } from 'bun'
 import { join } from 'path'
 import { readdir } from 'fs/promises'
-import * as registry from './registry'
+import { renderPartial } from './registry/partial'
+import { triggerHandler } from './registry/trigger'
+import { submitForm } from './registry/form'
+import { registerConnection } from './registry/connection'
 import { pushRedirect } from './sse'
 import { renderPage } from './renderer'
 
@@ -35,17 +38,17 @@ function responseFromStatus(status: string, data?: any) {
 }
 
 export function handlePartial(partialId: string, connectionId: string) {
-    const { result, content } = registry.renderPartial(partialId, connectionId)
+    const { result, content } = renderPartial(partialId, connectionId)
     return responseFromStatus(result, content)
 }
 
 export function handleTrigger(triggerId: string, value: string) {
-    const { result, error } = registry.triggerHandler(triggerId, value)
+    const { result, error } = triggerHandler(triggerId, value)
     return responseFromStatus(result, error)
 }
 
 export function handleSubmit(formId: string, formData: FormData) {
-    const { result, error } = registry.submitForm(formId, formData)
+    const { result, error } = submitForm(formId, formData)
     return responseFromStatus(result, error)
 }
 
@@ -66,7 +69,7 @@ export async function routeUrl(req: Request, server: Server, url: URL = new URL(
     const params: any = {}
     const layoutStack: string[] = []
     const contextData: any = { server, params }
-    const context = registry.registerConnection(req, contextData)
+    const context = registerConnection(req, contextData)
     let routeDir = ROUTE_PATH
 
     const restStack = []

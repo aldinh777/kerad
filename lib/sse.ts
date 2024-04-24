@@ -1,9 +1,9 @@
-import * as registry from './registry'
+import { hasConnection, unregisterConnection } from './registry/connection'
 
 const pushMap = new Map<string, (event: string, payload: string[]) => any>()
 
 export function serveSSE(req: Request, cid: string) {
-    if (!registry.hasConnection(cid)) {
+    if (!hasConnection(cid)) {
         return new Response('not found', { status: 404 })
     }
     return new Response(
@@ -17,7 +17,7 @@ export function serveSSE(req: Request, cid: string) {
                 })
                 req.signal.onabort = () => {
                     pushMap.delete(cid)
-                    registry.unregisterConnection(cid)
+                    unregisterConnection(cid)
                     controller.close()
                 }
             }

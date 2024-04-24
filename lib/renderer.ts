@@ -1,9 +1,14 @@
 import type { RektNode, RektProps, ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
 import type { State } from '@aldinh777/reactive'
-import * as registry from './registry'
+import { setRegistryHandler } from './registry/utils'
+import { registerPartial, unregisterPartial } from './registry/partial'
+import { registerTriggerHandler } from './registry/trigger'
+import { registerState } from './registry/state'
+import { getListItem, registerList } from './registry/list'
+import { registerFormHandler } from './registry/form'
 import * as sse from './sse'
 
-registry.setRegistryHandler({
+setRegistryHandler({
     state(state, stateId, connectionMap) {
         return state.onChange((value) => {
             sse.pushStateChange(connectionMap.keys(), value, stateId)
@@ -14,8 +19,8 @@ registry.setRegistryHandler({
             async update(_index, { item, context }, prev) {
                 const rendered = await renderToHtml(item, context)
                 const partialId = `${listId}-${context.id}`
-                registry.registerPartial(partialId, rendered, new Set(connectionMap.keys()))
-                context.onDismount(() => registry.unregisterPartial(partialId))
+                registerPartial(partialId, rendered, new Set(connectionMap.keys()))
+                context.onDismount(() => unregisterPartial(partialId))
                 sse.pushListUpdate(connectionMap.keys(), listId, context.id, prev.context.id)
             },
             async insert(index, { item, context }) {
@@ -23,8 +28,8 @@ registry.setRegistryHandler({
                 const isLast = index >= mappedList().length - 1
                 const next = mappedList(index + 1)
                 const partialId = `${listId}-${context.id}`
-                registry.registerPartial(partialId, rendered, new Set(connectionMap.keys()))
-                context.onDismount(() => registry.unregisterPartial(partialId))
+                registerPartial(partialId, rendered, new Set(connectionMap.keys()))
+                context.onDismount(() => unregisterPartial(partialId))
                 if (isLast) {
                     sse.pushListInsertLast(connectionMap.keys(), listId, context.id)
                 } else {
@@ -62,16 +67,16 @@ function renderProps(props: RektProps, context: ServerContext) {
         } else if (prop.startsWith('bind:')) {
             const propName = prop.slice(5)
             if (isReactive(value)) {
-                reactiveBinds.push([propName, registry.registerState(value, context)])
+                reactiveBinds.push([propName, registerState(value, context)])
                 strProps += ` ${propName}="${value()}"`
             } else {
                 strProps += ` ${propName}="${value}"`
             }
         } else if (prop.startsWith('on:')) {
             const eventName = prop.slice(3)
-            eventsProps.push([eventName, registry.registerTriggerHandler(value, context)])
+            eventsProps.push([eventName, registerTriggerHandler(value, context)])
         } else if (isReactive(value)) {
-            reactiveProps.push([prop, registry.registerState(value, context)])
+            reactiveProps.push([prop, registerState(value, context)])
             strProps += ` ${prop}="${value()}"`
         } else {
             strProps += ` ${prop}="${value}"`
@@ -97,12 +102,12 @@ async function renderToHtml(item: RektNode | RektNode[], context: ServerContext)
         return item
     } else if (typeof item === 'function') {
         if ('onChange' in item) {
-            return `<rekt s="${registry.registerState(item, context)}">${item()}</rekt>`
+            return `<rekt s="${registerState(item, context)}">${item()}</rekt>`
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
-            const listId = registry.registerList(item, context)
+            const listId = registerList(item, context)
             const childrenOutput = await Promise.all(
                 item().map(async (value, index) => {
-                    const listItem = registry.getListItem(item, index)
+                    const listItem = getListItem(item, index)
                     const content = await renderToHtml(value, listItem.context)
                     return `<rekt i="${listItem.context.id}">${content}</rekt>`
                 })
@@ -114,7 +119,7 @@ async function renderToHtml(item: RektNode | RektNode[], context: ServerContext)
         if (typeof tag === 'string') {
             if (tag === 'form' && typeof props['on:submit'] === 'function') {
                 const submitHandler = props['on:submit']
-                const formId = registry.registerFormHandler(submitHandler, context)
+                const formId = registerFormHandler(submitHandler, context)
                 props['rekt-f'] = formId
                 delete props['on:submit']
             }
