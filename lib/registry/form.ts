@@ -1,4 +1,4 @@
-import type { ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
+import type { ServerContext } from '@aldinh777/rekt-jsx'
 import type { SubscriptionData } from './utils'
 import { createIdGenerator, handleContextData } from './utils'
 

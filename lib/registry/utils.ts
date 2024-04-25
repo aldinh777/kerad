@@ -1,7 +1,7 @@
 import type { State } from '@aldinh777/reactive'
 import type { ObservedList } from '@aldinh777/reactive/list/watchable'
 import type { Unsubscribe } from '@aldinh777/reactive/utils/subscription'
-import type { RektNode, ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
+import type { RektNode, ServerContext } from '@aldinh777/rekt-jsx'
 import { randomString } from '@aldinh777/toolbox/random'
 
 export interface SubscriptionData {

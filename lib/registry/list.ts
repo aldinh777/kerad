@@ -1,8 +1,8 @@
 import type { ObservedList, WatchableList } from '@aldinh777/reactive/list/watchable'
-import type { ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
+import type { ServerContext } from '@aldinh777/rekt-jsx'
 import type { SubscriptionData, StoredItem, IdGenerator } from './utils'
 import { map } from '@aldinh777/reactive/list/utils'
-import { createContext } from '@aldinh777/rekt-jsx/jsx-runtime'
+import { createContext } from '@aldinh777/rekt-jsx'
 import { handleContextData, createIdGenerator, uniqueHandlers } from './utils'
 
 interface ListSubscriptionData extends SubscriptionData {

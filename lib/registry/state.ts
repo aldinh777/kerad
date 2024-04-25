@@ -1,5 +1,5 @@
 import type { State } from '@aldinh777/reactive'
-import type { ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
+import type { ServerContext } from '@aldinh777/rekt-jsx'
 import { createIdGenerator, handleContextData, uniqueHandlers, type SubscriptionData } from './utils'
 
 const stateMap = new Map<State, SubscriptionData>()

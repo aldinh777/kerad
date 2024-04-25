@@ -1,4 +1,4 @@
-import type { RektNode, RektProps, ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
+import type { RektNode, RektProps, ServerContext } from '@aldinh777/rekt-jsx'
 import type { State } from '@aldinh777/reactive'
 import { setRegistryHandler } from './registry/utils'
 import { registerPartial, unregisterPartial } from './registry/partial'

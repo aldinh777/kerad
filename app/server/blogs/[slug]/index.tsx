@@ -1,4 +1,4 @@
-import type { RektProps, ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
+import type { RektProps, ServerContext } from '@aldinh777/rekt-jsx'
 
 export const metadata = {
     title: ''

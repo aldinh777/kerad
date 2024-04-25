@@ -1,5 +1,5 @@
-import type { ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
-import { createContext } from '@aldinh777/rekt-jsx/jsx-runtime'
+import type { ServerContext } from '@aldinh777/rekt-jsx'
+import { createContext } from '@aldinh777/rekt-jsx'
 import { createIdGenerator } from './utils'
 
 const contextConnectionMap = new Map<string, ServerContext>()

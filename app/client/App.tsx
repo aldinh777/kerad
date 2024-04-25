@@ -1,4 +1,4 @@
-import type { RektContext, RektProps } from '@aldinh777/rekt-jsx/jsx-runtime'
+import type { RektContext, RektProps } from '@aldinh777/rekt-jsx'
 import { computed } from '@aldinh777/reactive/utils'
 import { randomItem } from '@aldinh777/toolbox/random'
 import { state } from '@aldinh777/reactive'

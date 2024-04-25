@@ -1,6 +1,6 @@
-import type { RektProps, RektContext, RektNode } from '@aldinh777/rekt-jsx/jsx-runtime'
+import type { RektProps, RektContext, RektNode } from '@aldinh777/rekt-jsx'
 import type { ObservedList } from '@aldinh777/reactive/list/watchable'
-import { createContext } from '@aldinh777/rekt-jsx/jsx-runtime'
+import { createContext } from '@aldinh777/rekt-jsx'
 import { map } from '@aldinh777/reactive/list/utils'
 
 interface StoredItem {

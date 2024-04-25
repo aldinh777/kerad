@@ -1,6 +1,6 @@
-import type { RektComponent, RektContext } from '@aldinh777/rekt-jsx/jsx-runtime'
+import type { RektComponent, RektContext } from '@aldinh777/rekt-jsx'
 import { removeFromArray } from '@aldinh777/toolbox/array-operation'
-import { createContext } from '@aldinh777/rekt-jsx/jsx-runtime'
+import { createContext } from '@aldinh777/rekt-jsx'
 import { destroyElements, renderDom, select, selectAll, text } from './rekt-dom'
 
 interface BindData {

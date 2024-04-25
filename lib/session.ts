@@ -1,4 +1,4 @@
-import type { ServerContext } from '@aldinh777/rekt-jsx/jsx-runtime'
+import type { ServerContext } from '@aldinh777/rekt-jsx'
 import { randomString } from '@aldinh777/toolbox/random'
 
 const cookieSessions = new Map<string, SessionData>()
