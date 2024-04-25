@@ -1,4 +1,4 @@
-import type { RektComponent, RektContext } from '@aldinh777/rekt-jsx'
+import type { Component, Context } from '@aldinh777/rekt-jsx'
 import { removeFromArray } from '@aldinh777/toolbox/array-operation'
 import { createContext } from '@aldinh777/rekt-jsx'
 import { destroyElements, renderDom, select, selectAll, text } from './rekt-dom'
@@ -9,7 +9,7 @@ interface BindData {
     bind?: string
 }
 interface ElementBorderData {
-    context: RektContext
+    context: Context
     begin: Text
     end: Text
 }
@@ -38,10 +38,10 @@ function setBinding(stateId: string, elem: any, type: 'bind' | 'attr', value: st
     }
 }
 
-function bindClientComponent(node: HTMLElement | Document, context: RektContext) {
+function bindClientComponent(node: HTMLElement | Document, context: Context) {
     for (const elem of selectAll('rekt-client[src]', node)) {
         const src = elem.getAttribute('src') + '.js' || ''
-        import(src).then(async (Comp: { default: RektComponent }) => {
+        import(src).then(async (Comp: { default: Component }) => {
             const componentContext = createContext()
             elem.innerHTML = ''
             renderDom(elem, await Comp.default({}, componentContext), context)
@@ -50,7 +50,7 @@ function bindClientComponent(node: HTMLElement | Document, context: RektContext)
     }
 }
 
-function bindState(node: HTMLElement | Document, context: RektContext) {
+function bindState(node: HTMLElement | Document, context: Context) {
     for (const elem of selectAll('rekt[s]', node)) {
         const stateId = elem.getAttribute('s')!
         const text = document.createTextNode(elem.textContent || '')
@@ -111,7 +111,7 @@ function bindForm(node: HTMLElement | Document) {
     }
 }
 
-export function bindRecursive(node: HTMLElement | Document, context: RektContext = createContext()) {
+export function bindRecursive(node: HTMLElement | Document, context: Context = createContext()) {
     let listElement
     while ((listElement = select('rekt[l]', node))) {
         const listId = listElement.getAttribute('l')!

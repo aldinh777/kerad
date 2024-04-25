@@ -33,37 +33,37 @@ export function serveSSE(req: Request, cid: string) {
     )
 }
 
-function publish(topics: Iterable<string>, eventName: string, payloads: string[]) {
-    for (const topic of topics) {
-        const push = pushMap.get(topic)
+function publish(connections: Iterable<string>, eventName: string, payloads: string[]) {
+    for (const connection of connections) {
+        const push = pushMap.get(connection)
         push?.(eventName, payloads)
     }
 }
 
-export function pushStateChange(topics: Iterable<string>, value: string, stateId: string) {
-    publish(topics, 'change', [stateId, value])
+export function pushStateChange(connections: Iterable<string>, value: string, stateId: string) {
+    publish(connections, 'change', [stateId, value])
 }
 
-export function pushListUpdate(topics: Iterable<string>, listId: string, itemId: string, prevId: string) {
-    publish(topics, 'update', [listId, itemId, prevId])
+export function pushListUpdate(connections: Iterable<string>, listId: string, itemId: string, prevId: string) {
+    publish(connections, 'update', [listId, itemId, prevId])
 }
 
-export function pushListInsert(topics: Iterable<string>, listId: string, itemId: string, insertBeforeId: string) {
-    publish(topics, 'insert', [listId, itemId, insertBeforeId])
+export function pushListInsert(connections: Iterable<string>, listId: string, itemId: string, insertBeforeId: string) {
+    publish(connections, 'insert', [listId, itemId, insertBeforeId])
 }
 
-export function pushListInsertLast(topics: Iterable<string>, listId: string, itemId: string) {
-    publish(topics, 'push', [listId, itemId])
+export function pushListInsertLast(connections: Iterable<string>, listId: string, itemId: string) {
+    publish(connections, 'push', [listId, itemId])
 }
 
-export function pushListDelete(topics: Iterable<string>, listId: string, itemId: string) {
-    publish(topics, 'delete', [listId, itemId])
+export function pushListDelete(connections: Iterable<string>, listId: string, itemId: string) {
+    publish(connections, 'delete', [listId, itemId])
 }
 
-export function pushRedirect(topic: string, url?: string) {
-    if (topic === '*') {
+export function pushRedirect(connection: string, url?: string) {
+    if (connection === '*') {
         publish(pushMap.keys(), 'redirect', [])
     } else {
-        publish([topic], 'redirect', url ? [url] : [])
+        publish([connection], 'redirect', url ? [url] : [])
     }
 }

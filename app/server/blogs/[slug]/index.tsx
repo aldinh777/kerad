@@ -1,11 +1,11 @@
-import type { RektProps, ServerContext } from '@aldinh777/rekt-jsx'
+import type { Props, ServerContext } from '@aldinh777/rekt-jsx'
 
 export const metadata = {
     title: ''
 }
 
-export default function BlogPage(_props: RektProps, context: ServerContext) {
-    const title = context.data.params['slug']
+export default function BlogPage(_props: Props, context: ServerContext) {
+    const title = context.params['slug']!
 
     metadata.title = title
 

@@ -1,6 +1,11 @@
 import type { State } from '@aldinh777/reactive'
 
-export default function ({ counter, title }: { counter: State<number>; title: string }) {
+interface CounterProps {
+    counter: State<number>
+    title: string
+}
+
+export default function Counter({ counter, title }: CounterProps) {
     return (
         <div>
             <h5>

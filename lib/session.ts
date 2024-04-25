@@ -39,7 +39,7 @@ export function sessionByCookie(context: ServerContext) {
         }
     }
     const sessionId = createSessionId()
-    context.setHeader('Set-Cookie', `${COOKIE_NAME}=${sessionId}`)
+    context.responseData.headers['Set-Cookie'] = `${COOKIE_NAME}=${sessionId}`
     const sessionData = new SessionData()
     cookieSessions.set(sessionId, sessionData)
     return sessionData

@@ -5,24 +5,19 @@ import { createIdGenerator } from './utils'
 const contextConnectionMap = new Map<string, ServerContext>()
 const connectionIdGenerator = createIdGenerator()
 
-export function registerConnection(req: Request, data: any) {
+export function registerConnection(req: Request) {
     const contextId = connectionIdGenerator.next()
     const context: ServerContext = {
-        id: contextId,
-        connectionId: contextId,
+        ...createContext(),
+        _id: contextId,
+        _cid: contextId,
         request: req,
-        data: data,
-        setHeader: function (name: string, value: string): void {
-            data.response ??= {}
-            data.response.headers ??= {}
-            data.response.headers[name] = value
+        responseData: {
+            headers: {},
+            status: 200,
+            statusText: 'ok'
         },
-        setStatus: function (status: number, statusText: string): void {
-            data.response ??= {}
-            data.response.status ??= status
-            data.response.status ??= statusText
-        },
-        ...createContext()
+        params: {}
     }
     contextConnectionMap.set(contextId, context)
     return context

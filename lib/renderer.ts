@@ -1,4 +1,4 @@
-import type { RektNode, RektProps, ServerContext } from '@aldinh777/rekt-jsx'
+import type { Node, Props, ServerContext } from '@aldinh777/rekt-jsx'
 import type { State } from '@aldinh777/reactive'
 import { setRegistryHandler } from './registry/utils'
 import { registerPartial, unregisterPartial } from './registry/partial'
@@ -18,26 +18,26 @@ setRegistryHandler({
         const unsubWatch = mappedList.watch({
             async update(_index, { item, context }, prev) {
                 const rendered = await renderToHtml(item, context)
-                const partialId = `${listId}-${context.id}`
+                const partialId = `${listId}-${context._id}`
                 registerPartial(partialId, rendered, new Set(connectionMap.keys()))
                 context.onDismount(() => unregisterPartial(partialId))
-                sse.pushListUpdate(connectionMap.keys(), listId, context.id, prev.context.id)
+                sse.pushListUpdate(connectionMap.keys(), listId, context._id, prev.context._id)
             },
             async insert(index, { item, context }) {
                 const rendered = await renderToHtml(item, context)
                 const isLast = index >= mappedList().length - 1
                 const next = mappedList(index + 1)
-                const partialId = `${listId}-${context.id}`
+                const partialId = `${listId}-${context._id}`
                 registerPartial(partialId, rendered, new Set(connectionMap.keys()))
                 context.onDismount(() => unregisterPartial(partialId))
                 if (isLast) {
-                    sse.pushListInsertLast(connectionMap.keys(), listId, context.id)
+                    sse.pushListInsertLast(connectionMap.keys(), listId, context._id)
                 } else {
-                    sse.pushListInsert(connectionMap.keys(), listId, context.id, next.context.id)
+                    sse.pushListInsert(connectionMap.keys(), listId, context._id, next.context._id)
                 }
             },
             delete(_index, { context }) {
-                sse.pushListDelete(connectionMap.keys(), listId, context.id)
+                sse.pushListDelete(connectionMap.keys(), listId, context._id)
                 context.dismount()
             }
         })
@@ -55,7 +55,7 @@ function isReactive(state: any): state is State {
     return typeof state === 'function' && 'onChange' in state
 }
 
-function renderProps(props: RektProps, context: ServerContext) {
+function renderProps(props: Props, context: ServerContext) {
     const reactiveProps: [prop: string, stateId: string][] = []
     const reactiveBinds: [prop: string, stateId: string][] = []
     const eventsProps: [event: string, handlerId: string][] = []
@@ -94,7 +94,7 @@ function renderProps(props: RektProps, context: ServerContext) {
     return strProps
 }
 
-async function renderToHtml(item: RektNode | RektNode[], context: ServerContext): Promise<string> {
+async function renderToHtml(item: Node | Node[], context: ServerContext): Promise<string> {
     if (item instanceof Array) {
         const htmlArray = await Promise.all(item.map((nested) => renderToHtml(nested, context)))
         return htmlArray.join('')
@@ -109,7 +109,7 @@ async function renderToHtml(item: RektNode | RektNode[], context: ServerContext)
                 item().map(async (value, index) => {
                     const listItem = getListItem(item, index)
                     const content = await renderToHtml(value, listItem.context)
-                    return `<rekt i="${listItem.context.id}">${content}</rekt>`
+                    return `<rekt i="${listItem.context._id}">${content}</rekt>`
                 })
             )
             return `<rekt l="${listId}">${childrenOutput.join('')}</rekt>`
@@ -141,6 +141,6 @@ export async function renderPage(layout: string, component: any, context: Server
     const html = await renderToHtml(result, context)
     return layout
         .replace('%TITLE%', component.metadata?.title || 'Rekt Application')
-        .replace('%CID%', context.connectionId)
+        .replace('%CID%', context._cid)
         .replace('%PAGE%', html)
 }

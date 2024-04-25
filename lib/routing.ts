@@ -1,11 +1,9 @@
-import type { Server } from 'bun'
 import { join } from 'path'
 import { readdir } from 'fs/promises'
 import { renderPartial } from './registry/partial'
 import { triggerHandler } from './registry/trigger'
 import { submitForm } from './registry/form'
 import { registerConnection } from './registry/connection'
-import { pushRedirect } from './sse'
 import { renderPage } from './renderer'
 
 export const ROUTE_PATH = join(import.meta.dir, '../app/server')
@@ -64,12 +62,11 @@ export async function handleStaticFile(pathname: string) {
     }
 }
 
-export async function routeUrl(req: Request, server: Server, url: URL = new URL(req.url)): Promise<Response> {
+export async function routeUrl(req: Request, url: URL = new URL(req.url)): Promise<Response> {
     const urlArray = url.pathname === '/' ? [''] : url.pathname.split('/')
     const params: any = {}
     const layoutStack: string[] = []
-    const contextData: any = { server, params }
-    const context = registerConnection(req, contextData)
+    const context = registerConnection(req)
     let routeDir = ROUTE_PATH
 
     const restStack = []
@@ -149,10 +146,9 @@ export async function routeUrl(req: Request, server: Server, url: URL = new URL(
             Promise.resolve('%PAGE%')
         )
         const component = await md5HashImport(pageFilePath)
-        context.setHeader('Content-Type', 'text/html')
-        context.data.sendRedirect = (url?: string) => pushRedirect(context.connectionId, url)
+        context.responseData.headers['Content-Type'] = 'text/html'
         const renderOutput = await renderPage(htmlLayout, component, context)
-        return new Response(renderOutput, context.data.response)
+        return new Response(renderOutput, context.responseData)
     }
     return new Response('not found', { status: 404 })
 }

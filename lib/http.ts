@@ -38,7 +38,7 @@ export function startHttpServer() {
                     if (fileResponse) {
                         return fileResponse
                     }
-                    return await routing.routeUrl(req, server, url)
+                    return await routing.routeUrl(req, url)
             }
         }
     })

@@ -1,7 +1,7 @@
 import type { State } from '@aldinh777/reactive'
 import type { ObservedList } from '@aldinh777/reactive/list/watchable'
 import type { Unsubscribe } from '@aldinh777/reactive/utils/subscription'
-import type { RektNode, ServerContext } from '@aldinh777/rekt-jsx'
+import type { Node, ServerContext } from '@aldinh777/rekt-jsx'
 import { randomString } from '@aldinh777/toolbox/random'
 
 export interface SubscriptionData {
@@ -10,7 +10,7 @@ export interface SubscriptionData {
     unsubscribe?: Unsubscribe
 }
 export interface StoredItem {
-    item: RektNode | RektNode[]
+    item: Node | Node[]
     context: ServerContext
 }
 export interface IdGenerator {
@@ -60,16 +60,16 @@ export function handleContextData<T>(
         map.set(item, handlers.onCreate())
     }
     const { id, connectionMap, unsubscribe } = map.get(item)!
-    if (!connectionMap.has(context.connectionId)) {
-        connectionMap.set(context.connectionId, new Set())
+    if (!connectionMap.has(context._cid)) {
+        connectionMap.set(context._cid, new Set())
     }
-    const contextSet = connectionMap.get(context.connectionId)!
-    if (!contextSet.has(context.id)) {
-        contextSet.add(context.id)
+    const contextSet = connectionMap.get(context._cid)!
+    if (!contextSet.has(context._id)) {
+        contextSet.add(context._id)
         context.onDismount(() => {
-            contextSet.delete(context.id)
+            contextSet.delete(context._id)
             if (contextSet.size === 0) {
-                connectionMap.delete(context.connectionId)
+                connectionMap.delete(context._cid)
                 if (connectionMap.size === 0) {
                     map.delete(item)
                     handlers.onEmpty(id)

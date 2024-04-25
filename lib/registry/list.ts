@@ -15,17 +15,9 @@ const listIdGenerator = createIdGenerator()
 function createSubContext(parentContext: ServerContext, itemIdGenerator: IdGenerator) {
     const contextId = itemIdGenerator.next()
     const context: ServerContext = {
-        id: contextId,
-        connectionId: parentContext.connectionId,
-        request: parentContext.request,
-        data: parentContext.data,
-        setHeader(name: string, value: string): void {
-            parentContext.setHeader(name, value)
-        },
-        setStatus(code: number, statusText?: string | undefined): void {
-            parentContext.setStatus(code, statusText)
-        },
-        ...createContext()
+        ...parentContext,
+        ...createContext(),
+        _id: contextId,
     }
     context.onDismount(() => itemIdGenerator.delete(contextId))
     parentContext.onDismount(() => context.dismount())
