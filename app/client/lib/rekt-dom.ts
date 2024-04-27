@@ -1,4 +1,4 @@
-import type { RektProps, RektContext, RektNode } from '@aldinh777/rekt-jsx'
+import type { Props, Context, Node } from '@aldinh777/rekt-jsx'
 import type { ObservedList } from '@aldinh777/reactive/list/watchable'
 import { createContext } from '@aldinh777/rekt-jsx'
 import { map } from '@aldinh777/reactive/list/utils'
@@ -6,12 +6,12 @@ import { map } from '@aldinh777/reactive/list/utils'
 interface StoredItem {
     itemStart: Text
     itemEnd: Text
-    item: RektNode | RektNode[]
-    context: RektContext
+    item: Node | Node[]
+    context: Context
 }
 
 export const text = (str: string = '') => document.createTextNode(str)
-export const elem = (tag: string, props: RektProps, context: RektContext) => {
+export const elem = (tag: string, props: Props, context: Context) => {
     const el = document.createElement(tag)
     renderProps(el, props, context)
     return el
@@ -30,7 +30,7 @@ export function destroyElements(startMarker: any, endMarker: any) {
     endMarker?.remove()
 }
 
-function renderProps(elem: HTMLElement, props: RektProps, context: RektContext) {
+function renderProps(elem: HTMLElement, props: Props, context: Context) {
     for (const prop in props) {
         const value = props[prop]
         if (prop === 'children') {
@@ -40,7 +40,7 @@ function renderProps(elem: HTMLElement, props: RektProps, context: RektContext) 
             elem.addEventListener(eventName, value)
         } else if (typeof value === 'function' && 'onChange' in value) {
             elem.setAttribute(prop, value())
-            context.onMount(() => value.onChange((value: any) => elem.setAttribute(prop, value)))
+            context.onMount(() => value.onChange((value: any) => elem.setAttribute(prop, value), true))
         } else {
             elem.setAttribute(prop, value)
         }
@@ -55,7 +55,7 @@ function insertIfBefore(target: HTMLElement, item: Text | HTMLElement, before?: 
     }
 }
 
-export async function renderDom(target: HTMLElement, item: RektNode | RektNode[], context: RektContext, before?: Text) {
+export async function renderDom(target: HTMLElement, item: Node | Node[], context: Context, before?: Text) {
     if (item instanceof Array) {
         for (const nested of item) {
             await renderDom(target, nested, context, before)
@@ -66,7 +66,7 @@ export async function renderDom(target: HTMLElement, item: RektNode | RektNode[]
         if ('onChange' in item) {
             const textNode = text(item())
             insertIfBefore(target, textNode, before)
-            context.onMount(() => item.onChange((value) => (textNode.textContent = value)))
+            context.onMount(() => item.onChange((value) => (textNode.textContent = value), true))
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
             const listStart = text()
             const listEnd = text()

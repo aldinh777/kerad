@@ -10,9 +10,7 @@ import * as sse from './sse'
 
 setRegistryHandler({
     state(state, stateId, connectionMap) {
-        return state.onChange((value) => {
-            sse.pushStateChange(connectionMap.keys(), value, stateId)
-        })
+        return state.onChange((value) => sse.pushStateChange(connectionMap.keys(), value, stateId), true)
     },
     list(mappedList, listId, connectionMap) {
         const unsubWatch = mappedList.watch({
