@@ -2,7 +2,7 @@ import type { Server } from 'bun'
 import * as routing from './routing'
 import { serveSSE } from './sse'
 
-const PORT = process.env['HTTP_PORT'] || 3000
+const PORT = Bun.env['HTTP_PORT'] || 3000
 
 export function startHttpServer() {
     const server: Server = Bun.serve({

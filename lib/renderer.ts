@@ -138,7 +138,7 @@ export async function renderPage(layout: string, component: any, context: Server
     const result = await component.default({}, context)
     const html = await renderToHtml(result, context)
     return layout
-        .replace('%TITLE%', component.metadata?.title || 'Rekt Application')
+        .replace('%TITLE%', component.metadata?.title || Bun.env['APP_TITLE'] || '')
         .replace('%CID%', context._cid)
         .replace('%PAGE%', html)
 }

@@ -66,7 +66,7 @@ export async function routeUrl(req: Request, url: URL = new URL(req.url)): Promi
     const urlArray = url.pathname === '/' ? [''] : url.pathname.split('/')
     const params: any = {}
     const layoutStack: string[] = []
-    const context = registerConnection(req)
+    const context = registerConnection(req, params)
     let routeDir = ROUTE_PATH
 
     const restStack = []
@@ -131,7 +131,7 @@ export async function routeUrl(req: Request, url: URL = new URL(req.url)): Promi
         }
     }
     if (restFlag) {
-        params[restName] = restStack.join('/')
+        params[restName] = decodeURI(restStack.join('/'))
     }
     const pageFilePath = join(routeDir, 'index.tsx')
     const pageFile = Bun.file(pageFilePath)

@@ -5,7 +5,7 @@ import { createIdGenerator } from './utils'
 const contextConnectionMap = new Map<string, ServerContext>()
 const connectionIdGenerator = createIdGenerator()
 
-export function registerConnection(req: Request) {
+export function registerConnection(req: Request, params: Record<string, string>) {
     const contextId = connectionIdGenerator.next()
     const context: ServerContext = {
         ...createContext(),
@@ -17,7 +17,7 @@ export function registerConnection(req: Request) {
             status: 200,
             statusText: 'ok'
         },
-        params: {}
+        params: params
     }
     contextConnectionMap.set(contextId, context)
     return context
