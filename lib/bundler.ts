@@ -14,12 +14,10 @@ declare global {
 async function bundle(updated?: string) {
     await rm(OUTPUT_DIR, { recursive: true, force: true })
     const files = await readdir(CLIENT_PATH, { recursive: true })
+    const watched = files.filter((file) => file.endsWith('.tsx')).map((tsx) => join(CLIENT_PATH, tsx))
 
     await Bun.build({
-        entrypoints: [
-            SCRIPT_ENTRY,
-            ...files.filter((file) => file.endsWith('.tsx')).map((tsx) => join(CLIENT_PATH, tsx))
-        ],
+        entrypoints: [SCRIPT_ENTRY, ...watched],
         outdir: OUTPUT_DIR,
         splitting: true
     })
