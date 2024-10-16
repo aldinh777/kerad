@@ -3,8 +3,6 @@
     "@types/bun": "^1.0.11"
   },
   "dependencies": {
-    "@aldinh777/reactive": "^0.36.0",
-    "@aldinh777/rekt-jsx": "^0.2.3",
-    "@aldinh777/toolbox": "^1.4.1"
+    "@aldinh777/reactive": "npm:@jsr/aldinh777__reactive"
   }
 }

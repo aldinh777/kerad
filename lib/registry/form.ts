@@ -1,36 +1,36 @@
-import type { ServerContext } from '@aldinh777/rekt-jsx'
-import type { SubscriptionData } from './utils'
-import { createIdGenerator, handleContextData } from './utils'
+import type { ServerContext } from '@aldinh777/kerad-jsx';
+import type { SubscriptionData } from './utils.ts';
+import { createIdGenerator, handleContextData } from './utils.ts';
 
-const formHandlerMap = new Map<(formData: FormData) => any, SubscriptionData>()
-const formSubmitMap = new Map<string, (formData: FormData) => any>()
-const formIdGenerator = createIdGenerator()
+const formHandlerMap = new Map<(formData: FormData) => any, SubscriptionData>();
+const formSubmitMap = new Map<string, (formData: FormData) => any>();
+const formIdGenerator = createIdGenerator();
 
 export function registerFormHandler(formHandler: (formData: FormData) => any, context: ServerContext) {
     return handleContextData(context, formHandlerMap, formHandler, {
         onCreate() {
-            const formId = formIdGenerator.next()
-            formSubmitMap.set(formId, formHandler)
+            const formId = formIdGenerator.next();
+            formSubmitMap.set(formId, formHandler);
             return {
                 id: formId,
                 connectionMap: new Map()
-            }
+            };
         },
         onEmpty(formId) {
-            formSubmitMap.delete(formId)
-            formIdGenerator.delete(formId)
+            formSubmitMap.delete(formId);
+            formIdGenerator.delete(formId);
         }
-    })
+    });
 }
 
 export function submitForm(formId: string, formData: FormData) {
     if (!formSubmitMap.has(formId)) {
-        return { result: 'not found' }
+        return { result: 'not found' };
     }
     try {
-        formSubmitMap.get(formId)!(formData)
-        return { result: 'ok' }
+        formSubmitMap.get(formId)!(formData);
+        return { result: 'ok' };
     } catch (error) {
-        return { result: 'error', error }
+        return { result: 'error', error };
     }
 }

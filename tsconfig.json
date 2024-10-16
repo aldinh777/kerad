@@ -6,7 +6,7 @@
         "module": "ESNext",
         "moduleDetection": "force",
         "jsx": "react-jsx",
-        "jsxImportSource": "@aldinh777/rekt-jsx",
+        "jsxImportSource": "@aldinh777/kerad-jsx",
         "allowJs": true,
 
         // Bundler mode

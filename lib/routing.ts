@@ -1,140 +1,140 @@
-import { join } from 'path'
-import { readdir } from 'fs/promises'
-import { renderPartial } from './registry/partial'
-import { triggerHandler } from './registry/trigger'
-import { submitForm } from './registry/form'
-import { registerConnection } from './registry/connection'
-import { renderPage } from './renderer'
+import { join } from 'path';
+import { readdir } from 'fs/promises';
+import { renderPartial } from './registry/partial.ts';
+import { triggerHandler } from './registry/trigger.ts';
+import { submitForm } from './registry/form.ts';
+import { registerConnection } from './registry/connection.ts';
+import { renderPage } from './renderer.ts';
 
-export const ROUTE_PATH = join(import.meta.dir, '../app/server')
+export const ROUTE_PATH = join(import.meta.dir, '../app/server');
 
 async function md5HashImport(filename: string) {
-    const hasher = new Bun.CryptoHasher('md5')
-    const file = Bun.file(filename)
-    hasher.update(await file.arrayBuffer())
-    const checksum = hasher.digest('hex')
-    filename += '?checksum=' + checksum
-    return await import(filename)
+    const hasher = new Bun.CryptoHasher('md5');
+    const file = Bun.file(filename);
+    hasher.update(await file.arrayBuffer());
+    const checksum = hasher.digest('hex');
+    filename += '?checksum=' + checksum;
+    return await import(filename);
 }
 
 function responseFromStatus(status: string, data?: any) {
     switch (status) {
         case 'ok':
-            return new Response('ok')
+            return new Response('ok');
         case 'not found':
-            return new Response('not found', { status: 404 })
+            return new Response('not found', { status: 404 });
         case 'unauthorized':
-            return new Response('unauthorized', { status: 401 })
+            return new Response('unauthorized', { status: 401 });
         case 'partial':
-            return new Response(data, { headers: { 'Content-Type': 'text/html' } })
+            return new Response(data, { headers: { 'Content-Type': 'text/html' } });
         // @ts-ignore
         case 'error':
-            console.error(data)
+            console.error(data);
         default:
-            return new Response('error', { status: 500 })
+            return new Response('error', { status: 500 });
     }
 }
 
 export function handlePartial(partialId: string, connectionId: string) {
-    const { result, content } = renderPartial(partialId, connectionId)
-    return responseFromStatus(result, content)
+    const { result, content } = renderPartial(partialId, connectionId);
+    return responseFromStatus(result, content);
 }
 
 export function handleTrigger(triggerId: string, value: string) {
-    const { result, error } = triggerHandler(triggerId, value)
-    return responseFromStatus(result, error)
+    const { result, error } = triggerHandler(triggerId, value);
+    return responseFromStatus(result, error);
 }
 
 export function handleSubmit(formId: string, formData: FormData) {
-    const { result, error } = submitForm(formId, formData)
-    return responseFromStatus(result, error)
+    const { result, error } = submitForm(formId, formData);
+    return responseFromStatus(result, error);
 }
 
 export async function handleStaticFile(pathname: string) {
-    const filename = pathname === '/' ? '/index.html' : pathname
-    const file = Bun.file(join(import.meta.dir, '../app/static', filename))
+    const filename = pathname === '/' ? '/index.html' : pathname;
+    const file = Bun.file(join(import.meta.dir, '../app/static', filename));
     if (await file.exists()) {
-        return new Response(file)
+        return new Response(file);
     }
-    const buildFile = Bun.file(join(import.meta.dir, '../build', filename))
+    const buildFile = Bun.file(join(import.meta.dir, '../build', filename));
     if (await buildFile.exists()) {
-        return new Response(buildFile)
+        return new Response(buildFile);
     }
 }
 
 export async function routeUrl(req: Request, url: URL = new URL(req.url)): Promise<Response> {
-    const urlArray = url.pathname === '/' ? [''] : url.pathname.split('/')
-    const params: any = {}
-    const layoutStack: string[] = []
-    const context = registerConnection(req, params)
-    let routeDir = ROUTE_PATH
+    const urlArray = url.pathname === '/' ? [''] : url.pathname.split('/');
+    const params: any = {};
+    const layoutStack: string[] = [];
+    const context = registerConnection(req, params);
+    let routeDir = ROUTE_PATH;
 
-    const restStack = []
-    let restFlag = false
-    let restName = ''
+    const restStack = [];
+    let restFlag = false;
+    let restName = '';
     for (const urlPath of urlArray) {
         if (restFlag) {
-            restStack.push(urlPath)
-            continue
+            restStack.push(urlPath);
+            continue;
         }
 
-        const items = await readdir(routeDir)
+        const items = await readdir(routeDir);
 
         // push any +layout.html if there is any
         if (items.includes('layout.html')) {
-            layoutStack.push(join(routeDir, 'layout.html'))
+            layoutStack.push(join(routeDir, 'layout.html'));
         }
 
         // execute and return middleware response if there is any
         if (items.includes('middleware.ts')) {
-            const middlewareFile = join(routeDir, 'middleware.ts')
-            const middleware = await md5HashImport(middlewareFile)
-            const res = await middleware.default(context)
+            const middlewareFile = join(routeDir, 'middleware.ts');
+            const middleware = await md5HashImport(middlewareFile);
+            const res = await middleware.default(context);
             if (res) {
-                return res as Response
+                return res as Response;
             }
         }
 
         // skip if the current urlPath is '', indicating the root path
         if (!urlPath) {
-            continue
+            continue;
         }
 
         // find the next directory to check and compare with the url
         // if current directory has exactly a subdirectory with the same name as the path in the url
         if (items.includes(urlPath)) {
-            routeDir = join(routeDir, urlPath)
-            continue
+            routeDir = join(routeDir, urlPath);
+            continue;
         }
 
         // check for each subdirectories if there is any [param] or [...param] like subdirectory
-        let noMatch = true
+        let noMatch = true;
         for (const item of items.filter((item) => item.startsWith('[') && item.endsWith(']'))) {
-            const match = item.match(/\[(\.{3})?([$\w\d+-]+)\]/)
+            const match = item.match(/\[(\.{3})?([$\w\d+-]+)\]/);
             if (match) {
-                const [, isRest, param] = match
+                const [, isRest, param] = match;
                 if (isRest) {
-                    restFlag = true
-                    restName = param
-                    restStack.push(decodeURI(urlPath))
+                    restFlag = true;
+                    restName = param;
+                    restStack.push(decodeURI(urlPath));
                 } else {
-                    params[param] = decodeURI(urlPath)
+                    params[param] = decodeURI(urlPath);
                 }
-                routeDir = join(routeDir, item)
-                noMatch = false
-                break
+                routeDir = join(routeDir, item);
+                noMatch = false;
+                break;
             }
         }
 
         if (noMatch) {
-            return new Response('not found', { status: 404 })
+            return new Response('not found', { status: 404 });
         }
     }
     if (restFlag) {
-        params[restName] = decodeURI(restStack.join('/'))
+        params[restName] = decodeURI(restStack.join('/'));
     }
-    const pageFilePath = join(routeDir, 'index.tsx')
-    const pageFile = Bun.file(pageFilePath)
+    const pageFilePath = join(routeDir, 'index.tsx');
+    const pageFile = Bun.file(pageFilePath);
     if (await pageFile.exists()) {
         const htmlLayout = await layoutStack.reduce(
             (html, path) =>
@@ -144,11 +144,11 @@ export async function routeUrl(req: Request, url: URL = new URL(req.url)): Promi
                         .then((text) => html.replace('%PAGE%', text))
                 ),
             Promise.resolve('%PAGE%')
-        )
-        const component = await md5HashImport(pageFilePath)
-        context.responseData.headers['Content-Type'] = 'text/html'
-        const renderOutput = await renderPage(htmlLayout, component, context)
-        return new Response(renderOutput, context.responseData)
+        );
+        const component = await md5HashImport(pageFilePath);
+        context.responseData.headers['Content-Type'] = 'text/html';
+        const renderOutput = await renderPage(htmlLayout, component, context);
+        return new Response(renderOutput, context.responseData);
     }
-    return new Response('not found', { status: 404 })
+    return new Response('not found', { status: 404 });
 }

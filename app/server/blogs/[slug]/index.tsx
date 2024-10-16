@@ -1,13 +1,13 @@
-import type { Props, ServerContext } from '@aldinh777/rekt-jsx'
+import type { Props, ServerContext } from '@aldinh777/kerad-jsx';
 
 export const metadata = {
     title: ''
-}
+};
 
 export default function BlogPage(_props: Props, context: ServerContext) {
-    const title = context.params['slug']!
+    const title = context.params['slug']!;
 
-    metadata.title = title
+    metadata.title = title;
 
     return (
         <>
@@ -18,5 +18,5 @@ export default function BlogPage(_props: Props, context: ServerContext) {
                 reprehenderit cum laborum.
             </p>
         </>
-    )
+    );
 }

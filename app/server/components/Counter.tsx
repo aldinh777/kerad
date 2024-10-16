@@ -1,8 +1,8 @@
-import type { State } from '@aldinh777/reactive'
+import type { State } from '@aldinh777/reactive';
 
 interface CounterProps {
-    counter: State<number>
-    title: string
+    counter: State<number>;
+    title: string;
 }
 
 export default function Counter({ counter, title }: CounterProps) {
@@ -14,5 +14,5 @@ export default function Counter({ counter, title }: CounterProps) {
             <button on:click={() => counter(counter() - 1)}>-</button>
             <button on:click={() => counter(counter() + 1)}>+</button>
         </div>
-    )
+    );
 }
