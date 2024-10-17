@@ -1,5 +1,5 @@
 import { bindRecursive } from './lib/bindings.ts';
-import { subscribeServerEvents } from './lib/server-events.ts';
+import { initSocket } from './lib/socket.ts';
 
 bindRecursive(document);
-subscribeServerEvents();
+initSocket();

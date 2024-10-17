@@ -1,3 +1,8 @@
+/**
+ * @deprecated
+ * getting crazy timeout error, only 10 seconds of activity what the heck
+ */
+
 import { hasConnection, unregisterConnection } from './registry/connection.ts';
 
 const pushMap = new Map<string, (event: string, payload: string[]) => any>();

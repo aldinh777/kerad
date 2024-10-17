@@ -6,11 +6,11 @@ import { registerTriggerHandler } from './registry/trigger.ts';
 import { registerState } from './registry/state.ts';
 import { getListItem, registerList } from './registry/list.ts';
 import { registerFormHandler } from './registry/form.ts';
-import * as sse from './sse.ts';
+import { pushListDelete, pushListInsert, pushListInsertLast, pushListUpdate, pushStateChange } from './ws.ts';
 
 setRegistryHandler({
     state(state, stateId, connectionMap) {
-        return state.onChange((value) => sse.pushStateChange(connectionMap.keys(), value, stateId), true);
+        return state.onChange((value) => pushStateChange(connectionMap.keys(), value, stateId), true);
     },
     list(mappedList, listId, connectionMap) {
         const unsubWatch = mappedList.watch({
@@ -19,7 +19,7 @@ setRegistryHandler({
                 const partialId = `${listId}-${context._id}`;
                 registerPartial(partialId, rendered, new Set(connectionMap.keys()));
                 context.onDismount(() => unregisterPartial(partialId));
-                sse.pushListUpdate(connectionMap.keys(), listId, context._id, prev.context._id);
+                pushListUpdate(connectionMap.keys(), listId, context._id, prev.context._id);
             },
             async insert(index, { item, context }) {
                 const rendered = await renderToHtml(item, context);
@@ -29,13 +29,13 @@ setRegistryHandler({
                 registerPartial(partialId, rendered, new Set(connectionMap.keys()));
                 context.onDismount(() => unregisterPartial(partialId));
                 if (isLast) {
-                    sse.pushListInsertLast(connectionMap.keys(), listId, context._id);
+                    pushListInsertLast(connectionMap.keys(), listId, context._id);
                 } else {
-                    sse.pushListInsert(connectionMap.keys(), listId, context._id, next.context._id);
+                    pushListInsert(connectionMap.keys(), listId, context._id, next.context._id);
                 }
             },
             delete(_index, { context }) {
-                sse.pushListDelete(connectionMap.keys(), listId, context._id);
+                pushListDelete(connectionMap.keys(), listId, context._id);
                 context.dismount();
             }
         });
