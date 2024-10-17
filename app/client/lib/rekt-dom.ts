@@ -1,5 +1,5 @@
 import type { Props, Context, Node } from '@aldinh777/kerad-jsx';
-import type { ObservedList } from '@aldinh777/reactive/list/watchable';
+import type { ObservedList } from '@aldinh777/reactive/watchable';
 import { createContext } from '@aldinh777/kerad-jsx';
 import { map } from '@aldinh777/reactive/list/utils';
 

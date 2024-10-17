@@ -1,4 +1,4 @@
-import type { ObservedList, WatchableList } from '@aldinh777/reactive/list/watchable';
+import type { ObservedList, WatchableList } from '@aldinh777/reactive/watchable';
 import type { ServerContext } from '@aldinh777/kerad-jsx';
 import type { SubscriptionData, StoredItem, IdGenerator } from './utils.ts';
 import { map } from '@aldinh777/reactive/list/utils';

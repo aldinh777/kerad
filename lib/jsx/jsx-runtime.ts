@@ -1,6 +1,6 @@
 import type { State } from '@aldinh777/reactive';
-import type { WatchableList } from '@aldinh777/reactive/list/watchable';
-import type { Unsubscribe } from '@aldinh777/reactive/utils/subscription';
+import type { WatchableList } from '@aldinh777/reactive/watchable';
+import type { Unsubscribe } from '@aldinh777/reactive/subscription';
 
 declare global {
     namespace JSX {

@@ -1,7 +1,6 @@
 import type { Context, Props } from '@aldinh777/kerad-jsx';
 import { asyncUtils } from '@aldinh777/kerad-jsx/context-utils';
-import { computed } from '@aldinh777/reactive/utils';
-import { state } from '@aldinh777/reactive';
+import { state, computed } from '@aldinh777/reactive';
 
 function randomItem<T>(arr: T[]) {
     return arr[Math.floor(Math.random() * arr.length)];

@@ -1,6 +1,6 @@
 import type { State } from '@aldinh777/reactive';
 import type { Context } from './jsx-runtime.ts';
-import { computed, setEffect } from '@aldinh777/reactive/utils';
+import { computed, setEffect } from '@aldinh777/reactive';
 
 export function asyncUtils(context: Context, onError?: (error: any) => any) {
     const asyncHandler = (asyncFn: Function, cleanupFn: Function) => (handler: () => any, ms: number) => {

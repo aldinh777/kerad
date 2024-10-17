@@ -1,6 +1,6 @@
 import type { State } from '@aldinh777/reactive';
-import type { ObservedList } from '@aldinh777/reactive/list/watchable';
-import type { Unsubscribe } from '@aldinh777/reactive/utils/subscription';
+import type { ObservedList } from '@aldinh777/reactive/watchable';
+import type { Unsubscribe } from '@aldinh777/reactive/subscription';
 import type { Node, ServerContext } from '@aldinh777/kerad-jsx';
 
 const randomString = (length: number = 1) => {

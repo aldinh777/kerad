@@ -1,8 +1,9 @@
 {
   "devDependencies": {
-    "@types/bun": "^1.0.11"
+    "@types/bun": "^1.1.11"
   },
   "dependencies": {
+    "@aldinh777/kerad-jsx": "./lib/jsx/",
     "@aldinh777/reactive": "npm:@jsr/aldinh777__reactive"
   }
 }
