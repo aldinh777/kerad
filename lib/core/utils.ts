@@ -2,6 +2,7 @@ import type { State } from '@aldinh777/reactive';
 import type { ObservedList } from '@aldinh777/reactive/watchable';
 import type { Unsubscribe } from '@aldinh777/reactive/subscription';
 import type { Node } from '@aldinh777/kerad-jsx';
+import { Context } from './context.ts';
 
 const randomString = (length: number = 1) => {
     let result = '';
@@ -12,24 +13,6 @@ const randomString = (length: number = 1) => {
     }
     return result;
 };
-
-export class Context {
-    unsubscribers: Unsubscribe[] = [];
-    onMount(mountHandler: () => void | Unsubscribe) {
-        const dismountHandler = mountHandler();
-        if (dismountHandler) {
-            this.onDismount(dismountHandler);
-        }
-    }
-    onDismount(dismountHandler: Unsubscribe) {
-        this.unsubscribers.push(dismountHandler);
-    }
-    dismount(): void {
-        for (const unsubscribe of this.unsubscribers.splice(0)) {
-            unsubscribe();
-        }
-    }
-}
 
 interface ResponseData {
     headers: Record<string, string>;

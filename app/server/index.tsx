@@ -1,6 +1,6 @@
 import { state } from '@aldinh777/reactive';
 import { list } from '@aldinh777/reactive/list';
-import Counter from './components/Counter';
+import Counter from '../components/Counter';
 
 const globalCounter = state(0);
 const globalTodos = list(['one', 'two', 'three']);
@@ -14,9 +14,7 @@ export default function MainPage() {
     return (
         <>
             <div>
-                <kerad-client src="./App">
-                    <h3>Hello, world!</h3>
-                </kerad-client>
+                <kerad-client src="/App.tsx">Component is Loading...</kerad-client>
             </div>
             <Counter counter={globalCounter} title="Global Counter" />
             <Counter counter={counter} title="Local Counter" />

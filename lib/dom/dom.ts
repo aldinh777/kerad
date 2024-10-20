@@ -1,7 +1,5 @@
 import type { Props, Node } from '@aldinh777/kerad-jsx';
-import type { ObservedList } from '@aldinh777/reactive/watchable';
-import { Context } from '@aldinh777/kerad-core';
-import { map } from '@aldinh777/reactive/list/utils';
+import { Context } from '@aldinh777/kerad-core/context.ts';
 
 interface StoredItem {
     itemStart: Text;
@@ -70,7 +68,7 @@ export async function renderDom(target: HTMLElement, item: Node | Node[], contex
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
             const listStart = text();
             const listEnd = text();
-            const mappedList: ObservedList<StoredItem> = map(item, (listItem) => ({
+            const mappedList = item.map<StoredItem>((listItem) => ({
                 itemStart: text(),
                 itemEnd: text(),
                 item: listItem,

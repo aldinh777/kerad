@@ -1,5 +1,5 @@
 import type { Component } from '@aldinh777/kerad-jsx';
-import { Context } from '@aldinh777/kerad-core';
+import { Context } from '@aldinh777/kerad-core/context.ts';
 import { destroyElements, renderDom, select, selectAll, text } from './dom.ts';
 
 interface BindData {
@@ -46,8 +46,11 @@ function setBinding(stateId: string, elem: any, type: 'bind' | 'attr', value: st
 
 function bindClientComponent(node: HTMLElement | Document, context: Context) {
     for (const elem of selectAll('kerad-client[src]', node)) {
-        const src = elem.getAttribute('src') + '.js' || '';
-        import(src).then(async (Comp: { default: Component }) => {
+        const src = elem.getAttribute('src');
+        if (!src) {
+            continue;
+        }
+        import(src.replace(/\.tsx$/, '.js')).then(async (Comp: { default: Component }) => {
             const componentContext = new Context();
             elem.innerHTML = '';
             renderDom(elem, await Comp.default({}, componentContext), context);
