@@ -60,7 +60,8 @@ export async function handleStaticFile(pathname: string) {
 }
 
 export async function routeUrl(req: Request, url: URL = new URL(req.url)): Promise<Response> {
-    const urlArray = url.pathname === '/' ? [''] : url.pathname.split('/');
+    const pathname = url.pathname.endsWith('/') ? url.pathname : url.pathname + '/';
+    const urlArray = pathname === '/' ? [''] : pathname.split('/');
     const params: any = {};
     const layoutStack: string[] = [];
     const context = registerConnection(req, params);
@@ -77,7 +78,7 @@ export async function routeUrl(req: Request, url: URL = new URL(req.url)): Promi
 
         const items = await readdir(routeDir);
 
-        // push any +layout.html if there is any
+        // push any layout.html if there is any
         if (items.includes('layout.html')) {
             layoutStack.push(join(routeDir, 'layout.html'));
         }
