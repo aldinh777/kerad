@@ -16,8 +16,8 @@ interface ListElementData extends ElementBorderData {
     items: Map<string, ElementBorderData>;
 }
 
-const TRIGGER_ENDPOINT = '/rekt/trigger';
-const SUBMIT_ENDPOINT = 'rekt/submit';
+const TRIGGER_ENDPOINT = '/kerad/trigger';
+const SUBMIT_ENDPOINT = '/kerad/submit';
 
 const stateBindings = new Map<string, BindData[]>();
 const listBindings = new Map<string, ListElementData>();
@@ -45,7 +45,7 @@ function setBinding(stateId: string, elem: any, type: 'bind' | 'attr', value: st
 }
 
 function bindClientComponent(node: HTMLElement | Document, context: Context) {
-    for (const elem of selectAll('rekt-client[src]', node)) {
+    for (const elem of selectAll('kerad-client[src]', node)) {
         const src = elem.getAttribute('src') + '.js' || '';
         import(src).then(async (Comp: { default: Component }) => {
             const componentContext = new Context();
@@ -57,33 +57,33 @@ function bindClientComponent(node: HTMLElement | Document, context: Context) {
 }
 
 function bindState(node: HTMLElement | Document, context: Context) {
-    for (const elem of selectAll('rekt[s]', node)) {
+    for (const elem of selectAll('kerad[s]', node)) {
         const stateId = elem.getAttribute('s')!;
         const text = document.createTextNode(elem.textContent || '');
         elem.replaceWith(text);
         context.onMount(() => setBinding(stateId, text, 'bind', 'data'));
     }
-    for (const elem of selectAll('[rekt-p]', node)) {
-        const attribs = elem.getAttribute('rekt-p')!;
+    for (const elem of selectAll('[kerad-p]', node)) {
+        const attribs = elem.getAttribute('kerad-p')!;
         for (const propPair of attribs.split(' ')) {
             const [prop, stateId] = propPair.split(':');
             context.onMount(() => setBinding(stateId, elem, 'attr', prop));
         }
-        elem.removeAttribute('rekt-p');
+        elem.removeAttribute('kerad-p');
     }
-    for (const elem of selectAll('[rekt-b]', node)) {
-        const binds = elem.getAttribute('rekt-b')!;
+    for (const elem of selectAll('[kerad-b]', node)) {
+        const binds = elem.getAttribute('kerad-b')!;
         for (const propPair of binds.split(' ')) {
             const [prop, stateId] = propPair.split(':');
             context.onMount(() => setBinding(stateId, elem, 'bind', prop));
         }
-        elem.removeAttribute('rekt-b');
+        elem.removeAttribute('kerad-b');
     }
 }
 
 function bindTrigger(node: HTMLElement | Document) {
-    for (const elem of selectAll('[rekt-t]', node)) {
-        const attribs = elem.getAttribute('rekt-t')!;
+    for (const elem of selectAll('[kerad-t]', node)) {
+        const attribs = elem.getAttribute('kerad-t')!;
         for (const propPair of attribs.split(' ')) {
             const [eventName, handlerId] = propPair.split(':');
             elem.addEventListener(eventName, () => {
@@ -94,13 +94,13 @@ function bindTrigger(node: HTMLElement | Document) {
                 }
             });
         }
-        elem.removeAttribute('rekt-t');
+        elem.removeAttribute('kerad-t');
     }
 }
 
 function bindForm(node: HTMLElement | Document) {
-    for (const elem of selectAll('form[rekt-f]', node)) {
-        const formId = elem.getAttribute('rekt-f');
+    for (const elem of selectAll('form[kerad-f]', node)) {
+        const formId = elem.getAttribute('kerad-f');
         elem.addEventListener('submit', (ev: SubmitEvent) => {
             const form = ev.currentTarget as HTMLFormElement;
             const formData: any = new FormData(form);
@@ -113,13 +113,13 @@ function bindForm(node: HTMLElement | Document) {
             }
             ev.preventDefault();
         });
-        elem.removeAttribute('rekt-f');
+        elem.removeAttribute('kerad-f');
     }
 }
 
 export function bindRecursive(node: HTMLElement | Document, context: Context = new Context()) {
     let listElement;
-    while ((listElement = select('rekt[l]', node))) {
+    while ((listElement = select('kerad[l]', node))) {
         const listId = listElement.getAttribute('l')!;
         const listBegin = text();
         const listEnd = text();

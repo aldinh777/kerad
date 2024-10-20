@@ -86,13 +86,13 @@ function renderProps(props: Props, context: ServerContext) {
         }
     }
     if (reactiveProps.length) {
-        strProps += ` rekt-p="${reactiveProps.map((p) => p.join(':')).join(' ')}"`;
+        strProps += ` kerad-p="${reactiveProps.map((p) => p.join(':')).join(' ')}"`;
     }
     if (reactiveBinds.length) {
-        strProps += ` rekt-b="${reactiveBinds.map((p) => p.join(':')).join(' ')}"`;
+        strProps += ` kerad-b="${reactiveBinds.map((p) => p.join(':')).join(' ')}"`;
     }
     if (eventsProps.length) {
-        strProps += ` rekt-t="${eventsProps.map((t) => t.join(':')).join(' ')}"`;
+        strProps += ` kerad-t="${eventsProps.map((t) => t.join(':')).join(' ')}"`;
     }
     return strProps;
 }
@@ -105,17 +105,17 @@ async function renderToHtml(item: Node | Node[], context: ServerContext): Promis
         return item;
     } else if (typeof item === 'function') {
         if ('onChange' in item) {
-            return `<rekt s="${registerState(item, context)}">${item()}</rekt>`;
+            return `<kerad s="${registerState(item, context)}">${item()}</kerad>`;
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
             const listId = registerList(item, context);
             const childrenOutput = await Promise.all(
                 item().map(async (value, index) => {
                     const listItem = getListItem(item, index);
                     const content = await renderToHtml(value, listItem.context);
-                    return `<rekt i="${listItem.context._id}">${content}</rekt>`;
+                    return `<kerad i="${listItem.context._id}">${content}</kerad>`;
                 })
             );
-            return `<rekt l="${listId}">${childrenOutput.join('')}</rekt>`;
+            return `<kerad l="${listId}">${childrenOutput.join('')}</kerad>`;
         }
     } else if (typeof item === 'object' && 'tag' in item && 'props' in item) {
         const { tag, props } = item;
@@ -123,7 +123,7 @@ async function renderToHtml(item: Node | Node[], context: ServerContext): Promis
             if (tag === 'form' && typeof props['on:submit'] === 'function') {
                 const submitHandler = props['on:submit'];
                 const formId = registerFormHandler(submitHandler, context);
-                props['rekt-f'] = formId;
+                props['kerad-f'] = formId;
                 delete props['on:submit'];
             }
             if (props.children !== undefined) {

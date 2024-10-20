@@ -6,7 +6,7 @@ const globalCounter = state(0);
 const globalTodos = list(['one', 'two', 'three']);
 
 export const metadata = {
-    title: 'Rekt Main Page'
+    title: 'Kerad Main Page'
 };
 
 export default function MainPage() {
@@ -14,9 +14,9 @@ export default function MainPage() {
     return (
         <>
             <div>
-                <rekt-client src="./App">
+                <kerad-client src="./App">
                     <h3>Hello, world!</h3>
-                </rekt-client>
+                </kerad-client>
             </div>
             <Counter counter={globalCounter} title="Global Counter" />
             <Counter counter={counter} title="Local Counter" />

@@ -10,24 +10,24 @@ export function startHttpServer() {
             const url = new URL(req.url);
             const { pathname, searchParams } = url;
             switch (pathname) {
-                case '/rekt/port-data':
+                case '/kerad/port-data':
                     return Response.json({
                         HTTP: PORT,
                         WS: process.env['WS_PORT'] || 3100,
                         WSRELOAD: process.env['WSRELOAD_PORT'] || 3101
                     });
-                case '/rekt/partial':
+                case '/kerad/partial':
                     const partialId = searchParams.get('id')!;
                     const connectionId = req.headers.get('Connection-ID')!;
                     return routing.handlePartial(partialId, connectionId);
-                case '/rekt/trigger':
+                case '/kerad/trigger':
                     if (req.method !== 'POST') {
                         return new Response('not allowed', { status: 405 });
                     }
                     const triggerId = searchParams.get('id')!;
                     const body = await req.text();
                     return routing.handleTrigger(triggerId, body);
-                case '/rekt/submit':
+                case '/kerad/submit':
                     const formId = searchParams.get('id')!;
                     const [contentType] = req.headers.get('Content-Type')?.split(';') || [];
                     if (!(req.method === 'POST' && contentType === 'multipart/form-data')) {

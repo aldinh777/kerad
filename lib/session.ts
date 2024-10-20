@@ -30,7 +30,7 @@ function createSessionId() {
     return id;
 }
 
-const COOKIE_NAME = 'REKT_SESSION_ID';
+const COOKIE_NAME = 'KERAD_SESSION_ID';
 
 export function sessionByCookie(context: ServerContext) {
     const cookiesText = context.request.headers.get('cookie');

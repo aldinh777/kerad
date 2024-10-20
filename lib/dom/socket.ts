@@ -5,13 +5,13 @@ function hotReload(wsReloadHost: string) {
     hotReloadsocket.addEventListener('message', () => location.reload());
 }
 
-const PORT_DATA_ENDPOINT = '/rekt/port-data';
-const PARTIAL_ENDPOINT = '/rekt/partial';
+const PORT_DATA_ENDPOINT = '/kerad/port-data';
+const PARTIAL_ENDPOINT = '/kerad/partial';
 
 export async function initSocket() {
     const res = await fetch(PORT_DATA_ENDPOINT);
     const port = await res.json();
-    const cid = document.body.getAttribute('rekt-cid')!;
+    const cid = document.body.getAttribute('kerad-cid')!;
     const wsHost = `${location.hostname}:${port['WS']}`;
     const socket = new WebSocket(`ws://${wsHost}/connect?cid=${cid}`);
     if (port['WSRELOAD']) {

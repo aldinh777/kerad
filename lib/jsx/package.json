@@ -1,6 +1,6 @@
 {
   "name": "@aldinh777/kerad-jsx",
-  "description": "simple jsx implementation to be used for the rekt framework",
+  "description": "simple jsx implementation to be used for the kerad framework",
   "version": "0.2.3",
   "main": "jsx-runtime.ts",
   "type": "module",

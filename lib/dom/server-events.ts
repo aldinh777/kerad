@@ -1,10 +1,10 @@
 import { destroyListItem, insertListItem, replaceListItem, updateState } from './bindings.ts';
 
-const PARTIAL_ENDPOINT = '/rekt/partial';
+const PARTIAL_ENDPOINT = '/kerad/partial';
 
 export function subscribeServerEvents() {
-    const cid = document.body.getAttribute('rekt-cid')!;
-    const serverEvents = new EventSource(`/rekt/events?cid=${cid}`);
+    const cid = document.body.getAttribute('kerad-cid')!;
+    const serverEvents = new EventSource(`/kerad/events?cid=${cid}`);
 
     serverEvents.addEventListener('change', (ev) => {
         const [stateId, value] = JSON.parse(ev.data);
