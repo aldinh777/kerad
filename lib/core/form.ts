@@ -1,5 +1,4 @@
-import type { ServerContext } from '@aldinh777/kerad-jsx';
-import type { SubscriptionData } from './utils.ts';
+import type { ServerContext, SubscriptionData } from './utils.ts';
 import { createIdGenerator, handleContextData } from './utils.ts';
 
 const formHandlerMap = new Map<(formData: FormData) => any, SubscriptionData>();

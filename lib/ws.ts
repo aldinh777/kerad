@@ -1,5 +1,5 @@
 import type { Server } from 'bun';
-import { unregisterConnection } from './registry/connection.ts';
+import { unregisterConnection } from '@aldinh777/kerad-core';
 
 const PORT = process.env['WS_PORT'] || 3100;
 

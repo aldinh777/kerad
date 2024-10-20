@@ -1,4 +1,4 @@
-import type { ServerContext } from '@aldinh777/kerad-jsx';
+import type { ServerContext } from '@aldinh777/kerad-core';
 
 const randomString = (length: number = 1) => {
     let result = '';

@@ -1,9 +1,6 @@
 import { join } from 'path';
 import { readdir } from 'fs/promises';
-import { renderPartial } from './registry/partial.ts';
-import { triggerHandler } from './registry/trigger.ts';
-import { submitForm } from './registry/form.ts';
-import { registerConnection } from './registry/connection.ts';
+import { registerConnection, renderPartial, submitForm, triggerHandler } from '@aldinh777/kerad-core';
 import { renderPage } from './renderer.ts';
 
 export const ROUTE_PATH = join(import.meta.dir, '../app/server');

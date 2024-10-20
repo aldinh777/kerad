@@ -1,15 +1,11 @@
-import type { ServerContext } from '@aldinh777/kerad-jsx';
-import { createContext } from '@aldinh777/kerad-jsx';
-import { createIdGenerator } from './utils.ts';
+import { ServerContext, createIdGenerator } from "./utils";
 
 const contextConnectionMap = new Map<string, ServerContext>();
 const connectionIdGenerator = createIdGenerator();
 
 export function registerConnection(req: Request, params: Record<string, string>) {
     const contextId = connectionIdGenerator.next();
-    const context: ServerContext = {
-        ...createContext(),
-        _id: contextId,
+    const context = new ServerContext(contextId, {
         _cid: contextId,
         request: req,
         responseData: {
@@ -17,8 +13,8 @@ export function registerConnection(req: Request, params: Record<string, string>)
             status: 200,
             statusText: 'ok'
         },
-        params: params
-    };
+        params
+    });
     contextConnectionMap.set(contextId, context);
     return context;
 }

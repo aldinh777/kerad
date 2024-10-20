@@ -1,6 +1,6 @@
+import type { Context } from '@aldinh777/kerad-core';
 import type { State } from '@aldinh777/reactive';
 import type { WatchableList } from '@aldinh777/reactive/watchable';
-import type { Unsubscribe } from '@aldinh777/reactive/subscription';
 
 declare global {
     namespace JSX {
@@ -8,24 +8,6 @@ declare global {
             [elemName: string]: any;
         }
     }
-}
-
-export interface Context {
-    onMount(mountHandler: () => Unsubscribe | void): void;
-    onDismount(dismountHandler: Unsubscribe): void;
-    dismount(): void;
-}
-
-export interface ServerContext extends Context {
-    _id: string;
-    _cid: string;
-    params: Record<string, string>;
-    request: Request;
-    responseData: {
-        headers: Record<string, string>;
-        status: number;
-        statusText: string;
-    };
 }
 
 export interface Props extends Record<string, any> {
@@ -45,23 +27,3 @@ export function jsx(tag: string | Component, props: any): Element {
 }
 
 export const Fragment: Component = (props) => props.children || [];
-
-export function createContext() {
-    const unsubscribers: Unsubscribe[] = [];
-    return {
-        onMount(mountHandler: () => void | Unsubscribe) {
-            const dismountHandler = mountHandler();
-            if (dismountHandler) {
-                this.onDismount(dismountHandler);
-            }
-        },
-        onDismount(dismountHandler: Unsubscribe) {
-            unsubscribers.push(dismountHandler);
-        },
-        dismount(): void {
-            for (const unsubscribe of unsubscribers.splice(0)) {
-                unsubscribe();
-            }
-        }
-    };
-}

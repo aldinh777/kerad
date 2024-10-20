@@ -1,10 +1,10 @@
-import type { Props, ServerContext } from '@aldinh777/kerad-jsx';
+import type { ServerContext } from '@aldinh777/kerad-core';
 
 export const metadata = {
     title: ''
 };
 
-export default function BlogPage(_props: Props, context: ServerContext) {
+export default function BlogPage(_: any, context: ServerContext) {
     const title = context.params['slug']!;
 
     metadata.title = title;

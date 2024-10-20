@@ -1,6 +1,6 @@
-import type { Props, Context, Node } from '@aldinh777/kerad-jsx';
+import type { Props, Node } from '@aldinh777/kerad-jsx';
 import type { ObservedList } from '@aldinh777/reactive/watchable';
-import { createContext } from '@aldinh777/kerad-jsx';
+import { Context } from '@aldinh777/kerad-core';
 import { map } from '@aldinh777/reactive/list/utils';
 
 interface StoredItem {
@@ -74,7 +74,7 @@ export async function renderDom(target: HTMLElement, item: Node | Node[], contex
                 itemStart: text(),
                 itemEnd: text(),
                 item: listItem,
-                context: createContext()
+                context: new Context()
             }));
             insertIfBefore(target, listStart, before);
             for (const { item: listItem, context: itemContext, itemStart, itemEnd } of mappedList()) {

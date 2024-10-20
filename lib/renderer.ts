@@ -1,11 +1,16 @@
-import type { Node, Props, ServerContext } from '@aldinh777/kerad-jsx';
+import { type ServerContext } from '@aldinh777/kerad-core';
+import type { Node, Props } from '@aldinh777/kerad-jsx';
 import type { State } from '@aldinh777/reactive';
-import { setRegistryHandler } from './registry/utils.ts';
-import { registerPartial, unregisterPartial } from './registry/partial.ts';
-import { registerTriggerHandler } from './registry/trigger.ts';
-import { registerState } from './registry/state.ts';
-import { getListItem, registerList } from './registry/list.ts';
-import { registerFormHandler } from './registry/form.ts';
+import {
+    getListItem,
+    registerFormHandler,
+    registerList,
+    registerPartial,
+    registerState,
+    registerTriggerHandler,
+    setRegistryHandler,
+    unregisterPartial
+} from '@aldinh777/kerad-core';
 import { pushListDelete, pushListInsert, pushListInsertLast, pushListUpdate, pushStateChange } from './ws.ts';
 
 setRegistryHandler({

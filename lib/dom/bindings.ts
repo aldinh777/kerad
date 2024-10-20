@@ -1,6 +1,6 @@
-import type { Component, Context } from '@aldinh777/kerad-jsx';
-import { createContext } from '@aldinh777/kerad-jsx';
-import { destroyElements, renderDom, select, selectAll, text } from './rekt-dom.ts';
+import type { Component } from '@aldinh777/kerad-jsx';
+import { Context } from '@aldinh777/kerad-core';
+import { destroyElements, renderDom, select, selectAll, text } from './dom.ts';
 
 interface BindData {
     elem: any;
@@ -48,7 +48,7 @@ function bindClientComponent(node: HTMLElement | Document, context: Context) {
     for (const elem of selectAll('rekt-client[src]', node)) {
         const src = elem.getAttribute('src') + '.js' || '';
         import(src).then(async (Comp: { default: Component }) => {
-            const componentContext = createContext();
+            const componentContext = new Context();
             elem.innerHTML = '';
             renderDom(elem, await Comp.default({}, componentContext), context);
             context.onDismount(() => componentContext.dismount());
@@ -117,7 +117,7 @@ function bindForm(node: HTMLElement | Document) {
     }
 }
 
-export function bindRecursive(node: HTMLElement | Document, context: Context = createContext()) {
+export function bindRecursive(node: HTMLElement | Document, context: Context = new Context()) {
     let listElement;
     while ((listElement = select('rekt[l]', node))) {
         const listId = listElement.getAttribute('l')!;
@@ -128,7 +128,7 @@ export function bindRecursive(node: HTMLElement | Document, context: Context = c
         const contents: any[] = [listBegin];
         for (const item of listElement.children as unknown as HTMLElement[]) {
             const itemId = item.getAttribute('i')!;
-            const itemContext = createContext();
+            const itemContext = new Context();
             const itemBegin = text();
             const itemEnd = text();
             listItems.set(itemId, { begin: itemBegin, end: itemEnd, context: itemContext });
@@ -175,7 +175,7 @@ export function insertListItem(html: string, listId: string, itemId: string, nex
     holder.innerHTML = html;
     const itemBegin = text();
     const itemEnd = text();
-    const itemContext = createContext();
+    const itemContext = new Context();
     list.items.set(itemId, { begin: itemBegin, end: itemEnd, context: itemContext });
     list.context.onDismount(() => itemContext.dismount());
     bindRecursive(holder, itemContext);

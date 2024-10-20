@@ -1,7 +1,7 @@
 import type { State } from '@aldinh777/reactive';
 import type { ObservedList } from '@aldinh777/reactive/watchable';
 import type { Unsubscribe } from '@aldinh777/reactive/subscription';
-import type { Node, ServerContext } from '@aldinh777/kerad-jsx';
+import type { Node } from '@aldinh777/kerad-jsx';
 
 const randomString = (length: number = 1) => {
     let result = '';
@@ -12,6 +12,53 @@ const randomString = (length: number = 1) => {
     }
     return result;
 };
+
+export class Context {
+    unsubscribers: Unsubscribe[] = [];
+    onMount(mountHandler: () => void | Unsubscribe) {
+        const dismountHandler = mountHandler();
+        if (dismountHandler) {
+            this.onDismount(dismountHandler);
+        }
+    }
+    onDismount(dismountHandler: Unsubscribe) {
+        this.unsubscribers.push(dismountHandler);
+    }
+    dismount(): void {
+        for (const unsubscribe of this.unsubscribers.splice(0)) {
+            unsubscribe();
+        }
+    }
+}
+
+interface ResponseData {
+    headers: Record<string, string>;
+    status: number;
+    statusText: string;
+}
+
+export interface ServerInterface {
+    _cid: string;
+    request: Request;
+    responseData: ResponseData;
+    params: Record<string, string>;
+}
+
+export class ServerContext extends Context implements ServerInterface {
+    _id: string;
+    _cid: string;
+    request: Request;
+    responseData: ResponseData;
+    params: Record<string, string>;
+    constructor(id: string, content: ServerInterface) {
+        super();
+        this._id = id;
+        this._cid = content._cid;
+        this.request = content.request;
+        this.responseData = content.responseData;
+        this.params = content.params;
+    }
+}
 
 export interface SubscriptionData {
     id: string;
@@ -64,7 +111,7 @@ export function handleContextData<T>(
     map: Map<T, SubscriptionData>,
     item: T,
     handlers: ContextDataHandler
-) {
+): string {
     if (!map.has(item)) {
         map.set(item, handlers.onCreate());
     }
