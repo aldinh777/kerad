@@ -1,15 +1,7 @@
 import type { ServerContext } from '@aldinh777/kerad-core';
+import { createIdGenerator } from '@aldinh777/kerad-core';
 
-const randomString = (length: number = 1) => {
-    let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-};
-
+const sessionIdGenerator = createIdGenerator();
 const cookieSessions = new Map<string, SessionData>();
 
 class SessionData extends Map {
@@ -22,18 +14,10 @@ class SessionData extends Map {
     }
 }
 
-function createSessionId() {
-    let id = randomString(8);
-    while (cookieSessions.has(id)) {
-        id += randomString();
-    }
-    return id;
-}
-
 const COOKIE_NAME = 'KERAD_SESSION_ID';
 
 export function sessionByCookie(context: ServerContext) {
-    const cookiesText = context.request.headers.get('cookie');
+    const cookiesText = context.connection.req.header('Cookie');
     if (cookiesText) {
         const cookies = cookiesText
             .split(';')
@@ -47,15 +31,15 @@ export function sessionByCookie(context: ServerContext) {
             }
         }
     }
-    const sessionId = createSessionId();
-    context.responseData.headers['Set-Cookie'] = `${COOKIE_NAME}=${sessionId}`;
+    const sessionId = sessionIdGenerator.next();
+    context.connection.header('Set-Cookie', `${COOKIE_NAME}=${sessionId}`);
     const sessionData = new SessionData();
     cookieSessions.set(sessionId, sessionData);
     return sessionData;
 }
 
 export function destroySession(context: ServerContext) {
-    const cookiesText = context.request.headers.get('cookie');
+    const cookiesText = context.connection.req.header('Cookie');
     if (cookiesText) {
         const cookies = cookiesText
             .split(';')
