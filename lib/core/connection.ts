@@ -1,20 +1,13 @@
-import { ServerContext, createIdGenerator } from "./utils";
+import type { Context } from '@hono/hono';
+import { ServerContext, createIdGenerator } from './utils';
 
 const contextConnectionMap = new Map<string, ServerContext>();
 const connectionIdGenerator = createIdGenerator();
 
-export function registerConnection(req: Request, params: Record<string, string>) {
+export function registerConnection(connection: Context, params: Record<string, string> = {}) {
     const contextId = connectionIdGenerator.next();
-    const context = new ServerContext(contextId, {
-        _cid: contextId,
-        request: req,
-        responseData: {
-            headers: {},
-            status: 200,
-            statusText: 'ok'
-        },
-        params
-    });
+    connection.set('_cid', contextId);
+    const context = new ServerContext(contextId, connection, params);
     contextConnectionMap.set(contextId, context);
     return context;
 }

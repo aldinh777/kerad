@@ -21,26 +21,26 @@ setRegistryHandler({
         const unsubWatch = mappedList.watch({
             async update(_index, { item, context }, prev) {
                 const rendered = await renderToHtml(item, context);
-                const partialId = `${listId}-${context._id}`;
+                const partialId = `${listId}-${context.id}`;
                 registerPartial(partialId, rendered, new Set(connectionMap.keys()));
                 context.onDismount(() => unregisterPartial(partialId));
-                pushListUpdate(connectionMap.keys(), listId, context._id, prev.context._id);
+                pushListUpdate(connectionMap.keys(), listId, context.id, prev.context.id);
             },
             async insert(index, { item, context }) {
                 const rendered = await renderToHtml(item, context);
                 const isLast = index >= mappedList().length - 1;
                 const next = mappedList(index + 1);
-                const partialId = `${listId}-${context._id}`;
+                const partialId = `${listId}-${context.id}`;
                 registerPartial(partialId, rendered, new Set(connectionMap.keys()));
                 context.onDismount(() => unregisterPartial(partialId));
                 if (isLast) {
-                    pushListInsertLast(connectionMap.keys(), listId, context._id);
+                    pushListInsertLast(connectionMap.keys(), listId, context.id);
                 } else {
-                    pushListInsert(connectionMap.keys(), listId, context._id, next.context._id);
+                    pushListInsert(connectionMap.keys(), listId, context.id, next.context.id);
                 }
             },
             delete(_index, { context }) {
-                pushListDelete(connectionMap.keys(), listId, context._id);
+                pushListDelete(connectionMap.keys(), listId, context.id);
                 context.dismount();
             }
         });
@@ -112,7 +112,7 @@ async function renderToHtml(item: Node | Node[], context: ServerContext): Promis
                 item().map(async (value, index) => {
                     const listItem = getListItem(item, index);
                     const content = await renderToHtml(value, listItem.context);
-                    return `<kerad i="${listItem.context._id}">${content}</kerad>`;
+                    return `<kerad i="${listItem.context.id}">${content}</kerad>`;
                 })
             );
             return `<kerad l="${listId}">${childrenOutput.join('')}</kerad>`;
@@ -142,8 +142,9 @@ async function renderToHtml(item: Node | Node[], context: ServerContext): Promis
 export async function renderPage(layout: string, component: any, context: ServerContext): Promise<string> {
     const result = await component.default({}, context);
     const html = await renderToHtml(result, context);
+    const cid = context.connection.get('_cid');
     return layout
         .replace('%TITLE%', component.metadata?.title || Bun.env['APP_TITLE'] || '')
-        .replace('%CID%', context._cid)
+        .replace('%CID%', cid)
         .replace('%PAGE%', html);
 }

@@ -6,6 +6,7 @@
     "@aldinh777/kerad-core": "./lib/core/",
     "@aldinh777/kerad-dom": "./lib/dom/",
     "@aldinh777/kerad-jsx": "./lib/jsx/",
-    "@aldinh777/reactive": "npm:@jsr/aldinh777__reactive"
+    "@aldinh777/reactive": "npm:@jsr/aldinh777__reactive",
+    "@hono/hono": "npm:@jsr/hono__hono"
   }
 }

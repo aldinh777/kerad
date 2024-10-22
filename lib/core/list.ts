@@ -11,7 +11,7 @@ const listIdGenerator = createIdGenerator();
 
 function createSubContext(parentContext: ServerContext, itemIdGenerator: IdGenerator) {
     const contextId = itemIdGenerator.next();
-    const context = new ServerContext(contextId, parentContext);
+    const context = new ServerContext(contextId, parentContext.connection, parentContext.params);
     context.onDismount(() => itemIdGenerator.delete(contextId));
     parentContext.onDismount(() => context.dismount());
     return context;

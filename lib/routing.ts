@@ -1,3 +1,4 @@
+import type { Context } from '@hono/hono';
 import { join } from 'path';
 import { readdir } from 'fs/promises';
 import { registerConnection, renderPartial, submitForm, triggerHandler } from '@aldinh777/kerad-core';
@@ -59,12 +60,11 @@ export async function handleStaticFile(pathname: string) {
     }
 }
 
-export async function routeUrl(req: Request, url: URL = new URL(req.url)): Promise<Response> {
-    const pathname = url.pathname.endsWith('/') ? url.pathname : url.pathname + '/';
+export async function routeUrl(connection: Context): Promise<Response> {
+    const pathname = connection.req.path.endsWith('/') ? connection.req.path : connection.req.path + '/';
     const urlArray = pathname === '/' ? [''] : pathname.split('/');
-    const params: any = {};
     const layoutStack: string[] = [];
-    const context = registerConnection(req, params);
+    const context = registerConnection(connection);
     let routeDir = ROUTE_PATH;
 
     const restStack = [];
@@ -116,7 +116,7 @@ export async function routeUrl(req: Request, url: URL = new URL(req.url)): Promi
                     restName = param;
                     restStack.push(decodeURI(urlPath));
                 } else {
-                    params[param] = decodeURI(urlPath);
+                    context.params[param] = decodeURI(urlPath);
                 }
                 routeDir = join(routeDir, item);
                 noMatch = false;
@@ -129,7 +129,7 @@ export async function routeUrl(req: Request, url: URL = new URL(req.url)): Promi
         }
     }
     if (restFlag) {
-        params[restName] = decodeURI(restStack.join('/'));
+        context.params[restName] = decodeURI(restStack.join('/'));
     }
     const pageFilePath = join(routeDir, 'index.tsx');
     const pageFile = Bun.file(pageFilePath);
@@ -144,9 +144,8 @@ export async function routeUrl(req: Request, url: URL = new URL(req.url)): Promi
             Promise.resolve('%PAGE%')
         );
         const component = await md5HashImport(pageFilePath);
-        context.responseData.headers['Content-Type'] = 'text/html';
         const renderOutput = await renderPage(htmlLayout, component, context);
-        return new Response(renderOutput, context.responseData);
+        return context.connection.html(renderOutput);
     }
     return new Response('not found', { status: 404 });
 }

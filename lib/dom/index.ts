@@ -1,5 +1,3 @@
-import { bindRecursive } from './bindings.ts';
-import { initSocket } from './socket.ts';
-
-bindRecursive(document);
-initSocket();
+export * from './dom.ts';
+export * from './bindings.ts';
+export * from './socket.ts';

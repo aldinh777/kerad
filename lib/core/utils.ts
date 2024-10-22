@@ -1,3 +1,4 @@
+import type { Context as HonoContext } from '@hono/hono';
 import type { State } from '@aldinh777/reactive';
 import type { ObservedList } from '@aldinh777/reactive/watchable';
 import type { Unsubscribe } from '@aldinh777/reactive/subscription';
@@ -14,32 +15,15 @@ const randomString = (length: number = 1) => {
     return result;
 };
 
-interface ResponseData {
-    headers: Record<string, string>;
-    status: number;
-    statusText: string;
-}
-
-export interface ServerInterface {
-    _cid: string;
-    request: Request;
-    responseData: ResponseData;
+export class ServerContext extends Context {
+    id: string;
     params: Record<string, string>;
-}
-
-export class ServerContext extends Context implements ServerInterface {
-    _id: string;
-    _cid: string;
-    request: Request;
-    responseData: ResponseData;
-    params: Record<string, string>;
-    constructor(id: string, content: ServerInterface) {
+    connection: HonoContext;
+    constructor(id: string, connection: HonoContext, params: Record<string, string> = {}) {
         super();
-        this._id = id;
-        this._cid = content._cid;
-        this.request = content.request;
-        this.responseData = content.responseData;
-        this.params = content.params;
+        this.id = id;
+        this.params = params;
+        this.connection = connection;
     }
 }
 
@@ -99,16 +83,17 @@ export function handleContextData<T>(
         map.set(item, handlers.onCreate());
     }
     const { id, connectionMap, unsubscribe } = map.get(item)!;
-    if (!connectionMap.has(context._cid)) {
-        connectionMap.set(context._cid, new Set());
+    const cid = context.connection.get('_cid');
+    if (!connectionMap.has(cid)) {
+        connectionMap.set(cid, new Set());
     }
-    const contextSet = connectionMap.get(context._cid)!;
-    if (!contextSet.has(context._id)) {
-        contextSet.add(context._id);
+    const contextSet = connectionMap.get(cid)!;
+    if (!contextSet.has(context.id)) {
+        contextSet.add(context.id);
         context.onDismount(() => {
-            contextSet.delete(context._id);
+            contextSet.delete(context.id);
             if (contextSet.size === 0) {
-                connectionMap.delete(context._cid);
+                connectionMap.delete(cid);
                 if (connectionMap.size === 0) {
                     map.delete(item);
                     handlers.onEmpty(id);
