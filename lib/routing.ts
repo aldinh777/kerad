@@ -131,7 +131,7 @@ export async function routeUrl(connection: Context): Promise<Response> {
     if (restFlag) {
         context.params[restName] = decodeURI(restStack.join('/'));
     }
-    const pageFilePath = join(routeDir, 'index.tsx');
+    const pageFilePath = join(routeDir, 'page.tsx');
     const pageFile = Bun.file(pageFilePath);
     if (await pageFile.exists()) {
         const htmlLayout = await layoutStack.reduce(
