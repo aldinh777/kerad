@@ -1,6 +1,6 @@
 {
   "name": "@aldinh777/kerad-tools",
-  "description": "basic tools for kerad",
+  "description": "basic common tools to use alongside kerad",
   "version": "0.0.1",
   "type": "module",
   "exports": {

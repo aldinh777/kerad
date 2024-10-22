@@ -1,5 +1,7 @@
 {
   "name": "@aldinh777/kerad",
+  "version": "0.1.0",
+  "description": "Kerad Framework",
   "scripts": {
     "dev": "bun --watch ./main.ts"
   },
