@@ -1,4 +1,8 @@
 {
+  "name": "@aldinh777/kerad",
+  "scripts": {
+    "dev": "bun --watch ./main.ts"
+  },
   "devDependencies": {
     "@types/bun": "^1.1.11"
   },

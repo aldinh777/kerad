@@ -1,48 +1,45 @@
-import type { Server } from 'bun';
+import type { Server, WebSocketHandler } from 'bun';
 import { unregisterConnection } from '@aldinh777/kerad-core';
 
-const PORT = process.env['WS_PORT'] || 3100;
-
-interface WebSocketData {
+interface ConnectionData {
     cid: string;
 }
 
-let server: Server;
-
-export function startWebsocketServer() {
-    server = Bun.serve<WebSocketData>({
-        port: PORT,
-        fetch(req, server) {
-            const url = new URL(req.url);
-            const cid = url.searchParams.get('cid');
-            if (url.pathname === '/connect' && cid) {
-                const upgrade = server.upgrade(req, { data: { cid } });
-                if (!upgrade) {
-                    return new Response('Upgrade failed :(', { status: 500 });
-                } else {
-                    return new Response(null, { status: 101 });
-                }
-            }
-            return new Response('Invalid Path :(', { status: 404 });
-        },
-        websocket: {
-            open(socket) {
-                socket.subscribe(socket.data.cid);
-            },
-            message() {},
-            close(socket) {
-                const { cid } = socket.data;
-                socket.unsubscribe(cid);
-                unregisterConnection(cid);
+class WebSocketMiddleware {
+    server?: Server;
+    handlers = [];
+    fetch(req: Request, server: Server) {
+        const url = new URL(req.url);
+        const cid = url.searchParams.get('cid');
+        if (url.pathname === '/connect' && cid) {
+            const upgrade = server.upgrade(req, { data: { cid } });
+            if (upgrade) {
+                return new Response(null, { status: 101 });
+            } else {
+                return new Response('Upgrade failed :(', { status: 500 });
             }
         }
-    });
-    console.log(`websocket server created at port ${server.port}`);
+    }
+    socketHandler: WebSocketHandler<ConnectionData> = {
+        open(socket) {
+            socket.subscribe('hr');
+            socket.subscribe(socket.data.cid);
+        },
+        message() {},
+        close(socket) {
+            const { cid } = socket.data;
+            socket.unsubscribe('hr');
+            socket.unsubscribe(cid);
+            unregisterConnection(cid);
+        }
+    };
 }
+
+export const ws = new WebSocketMiddleware();
 
 function publish(topics: Iterable<string>, ...payloads: string[]) {
     for (const topic of topics) {
-        server?.publish(topic, [...payloads].join(':'));
+        ws.server?.publish(topic, [...payloads].join(':'));
     }
 }
 

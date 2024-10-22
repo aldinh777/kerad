@@ -1,18 +1,11 @@
 import { Hono } from '@hono/hono';
 import { serveStatic } from '@hono/hono/bun';
 import { handlePartial, handleTrigger, handleSubmit, routeUrl } from './routing.ts';
+import { ws } from './ws.ts';
 
 const app = new Hono();
 
 const PORT = process.env['HTTP_PORT'] || 3000;
-
-app.get('/kerad/port-data', async (c) => {
-    return c.json({
-        HTTP: PORT,
-        WS: process.env['WS_PORT'] || 3100,
-        WSRELOAD: process.env['WSRELOAD_PORT'] || 3101
-    });
-});
 
 app.get('/kerad/partial', async (c) => {
     const partialId = c.req.query('id') || '';
@@ -41,9 +34,16 @@ app.use(serveStatic({ root: './app/public' }));
 
 app.use(routeUrl);
 
-console.log(`http server running at http://localhost:3000`);
+export function startServer() {
+    const server = Bun.serve({
+        async fetch(req, server) {
+            const res = ws.fetch(req, server);
+            return res || (await app.fetch(req, server));
+        },
+        port: PORT,
+        websocket: ws.socketHandler
+    });
+    ws.server = server;
 
-export default {
-    port: PORT,
-    fetch: app.fetch
-};
+    console.log(`http server running at http://${server.hostname}:${server.port}`);
+}

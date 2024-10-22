@@ -25,7 +25,7 @@ export default function MainPage() {
                     {globalTodos.map((item) => (
                         <li>
                             <button on:click={() => globalTodos.splice(globalTodos().indexOf(item), 1)}>x</button>{' '}
-                            {item}
+                            {item.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')}
                         </li>
                     ))}
                 </ul>

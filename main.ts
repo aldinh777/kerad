@@ -1,15 +1,6 @@
-import server from './lib/server.ts';
-import * as ws from './lib/ws.ts';
+import { startServer } from './lib/server.ts';
+import { hotBundling, hotReloading } from './lib/bundler';
 
-ws.startWebsocketServer();
-
-import * as bundler from './lib/bundler';
-import * as hr from './lib/hot-reload';
-
-bundler.watchBundle();
-hr.startHotReloadServer();
-
-export default {
-    port: server.port,
-    fetch: server.fetch
-};
+startServer();
+hotBundling();
+hotReloading();

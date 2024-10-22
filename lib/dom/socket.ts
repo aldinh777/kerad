@@ -1,22 +1,10 @@
 import { destroyListItem, insertListItem, replaceListItem, updateState } from './bindings';
 
-function hotReload(wsReloadHost: string) {
-    const hotReloadsocket = new WebSocket(`ws://${wsReloadHost}/hr`);
-    hotReloadsocket.addEventListener('message', () => location.reload());
-}
-
-const PORT_DATA_ENDPOINT = '/kerad/port-data';
 const PARTIAL_ENDPOINT = '/kerad/partial';
 
 export async function initSocket() {
-    const res = await fetch(PORT_DATA_ENDPOINT);
-    const port = await res.json();
     const cid = document.body.getAttribute('kerad-cid')!;
-    const wsHost = `${location.hostname}:${port['WS']}`;
-    const socket = new WebSocket(`ws://${wsHost}/connect?cid=${cid}`);
-    if (port['WSRELOAD']) {
-        hotReload(`${location.hostname}:${port['WSRELOAD']}`);
-    }
+    const socket = new WebSocket(`ws://${location.host}/connect?cid=${cid}`);
     socket.addEventListener('message', ({ data }) => {
         const [code] = data.split(':', 1);
         if (code === 'c') {
@@ -43,7 +31,11 @@ export async function initSocket() {
             destroyListItem(listId, itemId);
         } else if (code === 'r') {
             const redirectUrl = data.slice(2);
-            location.href = redirectUrl;
+            if (redirectUrl) {
+                location.href = redirectUrl;
+            } else {
+                location.reload();
+            }
         }
     });
 }
