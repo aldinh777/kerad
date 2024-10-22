@@ -2,11 +2,11 @@ import { Hono } from '@hono/hono';
 import { serveStatic } from '@hono/hono/bun';
 import { handlePartial, handleTrigger, handleSubmit, routeUrl } from './routing.ts';
 
-const app = new Hono<{ Variables: { _id: string; _cid: string } }>();
+const app = new Hono();
 
 const PORT = process.env['HTTP_PORT'] || 3000;
 
-app.use('/kerad/port-data', async (c) => {
+app.get('/kerad/port-data', async (c) => {
     return c.json({
         HTTP: PORT,
         WS: process.env['WS_PORT'] || 3100,
@@ -14,7 +14,7 @@ app.use('/kerad/port-data', async (c) => {
     });
 });
 
-app.use('/kerad/partial', async (c) => {
+app.get('/kerad/partial', async (c) => {
     const partialId = c.req.query('id') || '';
     const connectionId = (c.req.header('Connection-ID') as string) || '';
     return handlePartial(partialId, connectionId);
@@ -36,8 +36,8 @@ app.post('/kerad/submit', async (c) => {
     return handleSubmit(formId, formData);
 });
 
-app.use(serveStatic({ root: './build' }));
-app.use(serveStatic({ root: './app/public' }));
+app.get(serveStatic({ root: './build' }));
+app.get(serveStatic({ root: './app/public' }));
 
 app.use(routeUrl);
 
