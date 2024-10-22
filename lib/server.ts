@@ -36,8 +36,8 @@ app.post('/kerad/submit', async (c) => {
     return handleSubmit(formId, formData);
 });
 
-app.get(serveStatic({ root: './build' }));
-app.get(serveStatic({ root: './app/public' }));
+app.use(serveStatic({ root: './build' }));
+app.use(serveStatic({ root: './app/public' }));
 
 app.use(routeUrl);
 
