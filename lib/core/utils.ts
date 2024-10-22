@@ -19,7 +19,7 @@ export class ServerContext extends Context {
     id: string;
     params: Record<string, string | undefined>;
     connection: HonoContext;
-    constructor(id: string, connection: HonoContext, params: Record<string, string> = {}) {
+    constructor(id: string, connection: HonoContext, params: Record<string, string | undefined> = {}) {
         super();
         this.id = id;
         this.params = params;
@@ -60,7 +60,7 @@ export function createIdGenerator(): IdGenerator {
     const set = new Set<string>();
     return {
         next() {
-            let id = randomString(3);
+            let id = randomString(4);
             while (set.has(id)) {
                 id += randomString();
             }

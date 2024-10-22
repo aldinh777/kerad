@@ -1,0 +1,9 @@
+{
+  "name": "@aldinh777/kerad-tools",
+  "description": "basic tools for kerad",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    "./session": "./session.ts"
+  }
+}
