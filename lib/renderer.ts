@@ -1,4 +1,4 @@
-import { type ServerContext } from '@aldinh777/kerad-core';
+import type { ServerContext } from '@aldinh777/kerad-core';
 import type { Node, Props } from '@aldinh777/kerad-jsx';
 import type { State } from '@aldinh777/reactive';
 import {

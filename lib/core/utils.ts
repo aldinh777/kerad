@@ -17,7 +17,7 @@ const randomString = (length: number = 1) => {
 
 export class ServerContext extends Context {
     id: string;
-    params: Record<string, string>;
+    params: Record<string, string | undefined>;
     connection: HonoContext;
     constructor(id: string, connection: HonoContext, params: Record<string, string> = {}) {
         super();

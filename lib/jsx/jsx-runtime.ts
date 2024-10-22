@@ -5,6 +5,7 @@ import type { WatchableList } from '@aldinh777/reactive/watchable';
 declare global {
     namespace JSX {
         interface IntrinsicElements {
+            // @ts-ignore
             [elemName: string]: any;
         }
     }
