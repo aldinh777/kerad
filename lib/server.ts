@@ -1,3 +1,4 @@
+import { serve } from 'bun';
 import { Hono } from '@hono/hono';
 import { serveStatic } from '@hono/hono/bun';
 import { handlePartial, handleTrigger, handleSubmit, routeUrl } from './routing.ts';
@@ -35,7 +36,7 @@ app.use(serveStatic({ root: './app/public' }));
 app.use(routeUrl);
 
 export function startServer() {
-    const server = Bun.serve({
+    const server = serve({
         async fetch(req, server) {
             const res = ws.fetch(req, server);
             return res || (await app.fetch(req, server));

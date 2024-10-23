@@ -1,3 +1,4 @@
+import { build } from 'bun';
 import { join, relative } from 'path';
 import { watch } from 'fs';
 import { readdir, rm } from 'fs/promises';
@@ -18,7 +19,7 @@ async function bundle(updated?: string) {
     const files = await readdir(CLIENT_PATH, { recursive: true });
     const watched = files.filter((file) => file.endsWith('.tsx')).map((tsx) => join(CLIENT_PATH, tsx));
 
-    const res = await Bun.build({
+    const res = await build({
         entrypoints: [SCRIPT_ENTRY, ...watched],
         outdir: OUTPUT_DIR,
         splitting: true

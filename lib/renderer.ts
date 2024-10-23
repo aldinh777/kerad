@@ -144,7 +144,7 @@ export async function renderPage(layout: string, component: any, context: Server
     const html = await renderToHtml(result, context);
     const cid = context.connection.get('_cid');
     return layout
-        .replace('%TITLE%', component.metadata?.title || Bun.env['APP_TITLE'] || '')
+        .replace('%TITLE%', component.metadata?.title || process.env['APP_TITLE'] || '')
         .replace('%CID%', cid)
         .replace('%PAGE%', html);
 }

@@ -1,4 +1,5 @@
 import type { Context } from '@hono/hono';
+import { CryptoHasher, file } from 'bun';
 import { join } from 'path';
 import { readdir } from 'fs/promises';
 import { registerConnection, renderPartial, submitForm, triggerHandler } from '@aldinh777/kerad-core';
@@ -7,9 +8,9 @@ import { renderPage } from './renderer.ts';
 export const ROUTE_PATH = join(import.meta.dir, '../app/server');
 
 async function md5HashImport(filename: string) {
-    const hasher = new Bun.CryptoHasher('md5');
-    const file = Bun.file(filename);
-    hasher.update(await file.arrayBuffer());
+    const hasher = new CryptoHasher('md5');
+    const componentFile = file(filename);
+    hasher.update(await componentFile.arrayBuffer());
     const checksum = hasher.digest('hex');
     filename += '?checksum=' + checksum;
     return await import(filename);
@@ -50,11 +51,11 @@ export function handleSubmit(formId: string, formData: FormData) {
 
 export async function handleStaticFile(pathname: string) {
     const filename = pathname === '/' ? '/index.html' : pathname;
-    const file = Bun.file(join(import.meta.dir, '../app/static', filename));
-    if (await file.exists()) {
-        return new Response(file);
+    const staticFile = file(join(import.meta.dir, '../app/static', filename));
+    if (await staticFile.exists()) {
+        return new Response(staticFile);
     }
-    const buildFile = Bun.file(join(import.meta.dir, '../build', filename));
+    const buildFile = file(join(import.meta.dir, '../build', filename));
     if (await buildFile.exists()) {
         return new Response(buildFile);
     }
@@ -132,12 +133,12 @@ export async function routeUrl(connection: Context): Promise<Response> {
         context.params[restName] = decodeURI(restStack.join('/'));
     }
     const pageFilePath = join(routeDir, 'page.tsx');
-    const pageFile = Bun.file(pageFilePath);
+    const pageFile = file(pageFilePath);
     if (await pageFile.exists()) {
         const htmlLayout = await layoutStack.reduce(
             (html, path) =>
                 html.then((html) =>
-                    Bun.file(path)
+                    file(path)
                         .text()
                         .then((text) => html.replace('%PAGE%', text))
                 ),
