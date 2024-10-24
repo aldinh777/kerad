@@ -3,18 +3,16 @@
   "version": "0.1.0",
   "description": "Kerad Framework",
   "scripts": {
-    "dev": "bun --watch ./main.ts",
-    "db:push": "bunx --bun drizzle-kit push",
-    "db:seed": "bun --bun ./db/seeder.ts"
+    "dev": "bun --watch ./main.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.1.11",
     "drizzle-kit": "^0.26.2"
   },
   "dependencies": {
-    "@aldinh777/kerad-core": "./lib/core/",
-    "@aldinh777/kerad-dom": "./lib/dom/",
-    "@aldinh777/kerad-jsx": "./lib/jsx/",
+    "@aldinh777/kerad-core": "file:lib/core",
+    "@aldinh777/kerad-dom": "file:lib/dom",
+    "@aldinh777/kerad-jsx": "file:lib/jsx",
     "@aldinh777/reactive": "npm:@jsr/aldinh777__reactive",
     "@hono/hono": "npm:@jsr/hono__hono",
     "drizzle-orm": "^0.35.3",
