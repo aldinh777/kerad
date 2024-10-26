@@ -46,7 +46,6 @@ setRegistryHandler({
         });
         return () => {
             unsubWatch();
-            mappedList.stop();
             for (const { context } of mappedList()) {
                 context.dismount();
             }

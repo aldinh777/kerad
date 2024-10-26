@@ -1,7 +1,6 @@
 import type { Context as HonoContext } from '@hono/hono';
 import type { State } from '@aldinh777/reactive';
-import type { ObservedList } from '@aldinh777/reactive/watchable';
-import type { Unsubscribe } from '@aldinh777/reactive/subscription';
+import type { WatchableList } from '@aldinh777/reactive/watchable';
 import type { Node } from '@aldinh777/kerad-jsx';
 import { Context } from './context.ts';
 
@@ -30,7 +29,7 @@ export class ServerContext extends Context {
 export interface SubscriptionData {
     id: string;
     connectionMap: Map<string, Set<string>>;
-    unsubscribe?: Unsubscribe;
+    unsubscribe?: () => void;
 }
 export interface StoredItem {
     item: Node | Node[];
@@ -45,8 +44,8 @@ interface ContextDataHandler {
     onEmpty(id: string): any;
 }
 interface UniqueHandlers {
-    state?: (state: State, stateId: string, connections: Map<string, Set<string>>) => Unsubscribe;
-    list?: (mappedList: ObservedList<StoredItem>, listId: string, connections: Map<string, Set<string>>) => Unsubscribe;
+    state?: (state: State, stateId: string, connections: Map<string, Set<string>>) => () => void;
+    list?: (mappedList: WatchableList<StoredItem>, listId: string, connections: Map<string, Set<string>>) => () => void;
 }
 
 export const uniqueHandlers: UniqueHandlers = {};

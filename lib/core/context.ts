@@ -1,14 +1,12 @@
-import type { Unsubscribe } from "@aldinh777/reactive/subscription";
-
 export class Context {
-    unsubscribers: Unsubscribe[] = [];
-    onMount(mountHandler: () => void | Unsubscribe) {
+    unsubscribers: (() => void)[] = [];
+    onMount(mountHandler: () => void | (() => void)) {
         const dismountHandler = mountHandler();
         if (dismountHandler) {
             this.onDismount(dismountHandler);
         }
     }
-    onDismount(dismountHandler: Unsubscribe) {
+    onDismount(dismountHandler: () => void) {
         this.unsubscribers.push(dismountHandler);
     }
     dismount(): void {

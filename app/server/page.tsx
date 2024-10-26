@@ -1,4 +1,3 @@
-import type { Context } from '@aldinh777/kerad-core';
 import { state } from '@aldinh777/reactive';
 import { list } from '@aldinh777/reactive/list';
 import Counter from '../components/Counter';
@@ -10,15 +9,8 @@ export const metadata = {
     title: 'Kerad Main Page'
 };
 
-export default function MainPage(_: any, context: Context) {
+export default function MainPage(_: any) {
     const counter = state(0);
-    const todos = globalTodos.map((item) => (
-        <li>
-            <button on:click={() => globalTodos.splice(globalTodos().indexOf(item), 1)}>x</button>{' '}
-            {item.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')}
-        </li>
-    ));
-    context.onDismount(() => todos.stop());
     return (
         <>
             <div>
@@ -30,7 +22,6 @@ export default function MainPage(_: any, context: Context) {
             <div>
                 <h4>Todos</h4>
                 <ul>
-                    {/* warning! this map was not gonna be stopped after dismounted! */}
                     {globalTodos.map((item) => (
                         <li>
                             <button on:click={() => globalTodos.splice(globalTodos().indexOf(item), 1)}>x</button>{' '}

@@ -1,5 +1,5 @@
 import type { State } from '@aldinh777/reactive';
-import type { ObservedList, WatchableList } from '@aldinh777/reactive/watchable';
+import type { WatchableList } from '@aldinh777/reactive/watchable';
 import type { IdGenerator, StoredItem, SubscriptionData } from './utils.ts';
 import { createIdGenerator, handleContextData, ServerContext, uniqueHandlers } from './utils.ts';
 
@@ -28,7 +28,7 @@ export function registerState(state: State, context: ServerContext) {
 // Reactive List
 
 interface ListSubscriptionData extends SubscriptionData {
-    mappedList: ObservedList<StoredItem>;
+    mappedList: WatchableList<StoredItem>;
 }
 
 const listMap = new Map<WatchableList<any>, ListSubscriptionData>();

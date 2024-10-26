@@ -1,9 +1,8 @@
 import { computed, state } from '@aldinh777/reactive';
 import { list } from '@aldinh777/reactive/list';
 import { login } from '../../../db/repositories/user.ts';
-import type { ServerContext } from '@aldinh777/kerad-core';
 
-export default async function Views(_: any, context: ServerContext) {
+export default async function Views(_: any) {
     const status = state('not logged in');
     const submitting = state(false);
     const disabledStyle = computed(() => (submitting() ? 'display: none;' : 'display: block'));
@@ -15,11 +14,6 @@ export default async function Views(_: any, context: ServerContext) {
         </button>
     );
     const buttons = list([submitButton, disabledButton]);
-
-    context.onDismount(() => {
-        disabledStyle.stop();
-        reverseDisabledStyle.stop();
-    });
 
     async function userLogin(form: FormData) {
         submitting(true);

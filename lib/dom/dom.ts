@@ -103,7 +103,6 @@ export async function renderDom(target: HTMLElement, item: Node | Node[], contex
                 });
                 return () => {
                     unsubWatch();
-                    mappedList.stop();
                     for (const { context } of mappedList()) {
                         context.dismount();
                     }
