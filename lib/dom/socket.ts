@@ -3,7 +3,7 @@ import { destroyListItem, insertListItem, replaceListItem, updateState } from '.
 const PARTIAL_ENDPOINT = '/kerad/partial';
 
 const SIGNAL = {
-    STATE_CHANGE: 's',
+    STATE_CHANGE: 'c',
     LIST_UPDATE: 'u',
     LIST_INSERT: 'i',
     LIST_INSERT_LAST: 'l',
@@ -27,7 +27,7 @@ export async function initSocket() {
             case SIGNAL.STATE_CHANGE:
                 const [stateChangeId] = data.slice(2).split(':', 1);
                 const stateChangeValue = data.slice(stateChangeId.length + 3);
-                updateState(stateChangeId, stateChangeValue);
+                updateState(stateChangeId, JSON.parse(stateChangeValue));
                 break;
             case SIGNAL.LIST_UPDATE:
                 const [listUpdateId, itemUpdateId, replaceUpdateId] = data.slice(2).split(':');

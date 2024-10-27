@@ -15,7 +15,7 @@ import { pushListDelete, pushListInsert, pushListInsertLast, pushListUpdate, pus
 
 setRegistryHandler({
     state(state, stateId, connectionMap) {
-        return state.onChange((value) => pushStateChange(connectionMap.keys(), value, stateId), true);
+        return state.onChange((value) => pushStateChange(connectionMap.keys(), JSON.stringify(value), stateId), true);
     },
     list(mappedList, listId, connectionMap) {
         const unsubWatch = mappedList.watch({
@@ -70,9 +70,14 @@ function renderProps(props: Props, context: ServerContext) {
             eventsProps.push([eventName, registerTriggerHandler(value, context)]);
         } else if (isReactive(value)) {
             reactiveProps.push([prop, registerState(value, context)]);
-            strProps += ` ${prop}="${value()}"`;
+            const val = value();
+            if (val !== false) {
+                strProps += ` ${prop}="${val}"`;
+            }
         } else {
-            strProps += ` ${prop}="${value}"`;
+            if (value !== false) {
+                strProps += ` ${prop}="${value}"`;
+            }
         }
     }
     if (reactiveProps.length) {
