@@ -2,40 +2,59 @@ import { destroyListItem, insertListItem, replaceListItem, updateState } from '.
 
 const PARTIAL_ENDPOINT = '/kerad/partial';
 
+const SIGNAL = {
+    STATE_CHANGE: 's',
+    LIST_UPDATE: 'u',
+    LIST_INSERT: 'i',
+    LIST_INSERT_LAST: 'l',
+    LIST_DELETE: 'd',
+    REDIRECT: 'r'
+};
+
 export async function initSocket() {
     const cid = document.body.getAttribute('kerad-cid')!;
     const socket = new WebSocket(`ws://${location.host}/connect?cid=${cid}`);
     socket.addEventListener('message', ({ data }) => {
         const [code] = data.split(':', 1);
-        if (code === 'c') {
-            const [stateId] = data.slice(2).split(':', 1);
-            const value = data.slice(stateId.length + 3);
-            updateState(stateId, value);
-        } else if (code === 'u') {
-            const [listId, itemId, replaceId] = data.slice(2).split(':');
-            fetch(`${PARTIAL_ENDPOINT}?id=${listId}-${itemId}`, { headers: { 'Connection-ID': cid } })
-                .then((res) => res.text())
-                .then((htmlText) => replaceListItem(htmlText, listId, itemId, replaceId));
-        } else if (code === 'i') {
-            const [listId, itemId, nextItemId] = data.slice(2).split(':');
-            fetch(`${PARTIAL_ENDPOINT}?id=${listId}-${itemId}`, { headers: { 'Connection-ID': cid } })
-                .then((res) => res.text())
-                .then((htmlText) => insertListItem(htmlText, listId, itemId, nextItemId));
-        } else if (code === 'l') {
-            const [listId, itemId] = data.slice(2).split(':');
-            fetch(`${PARTIAL_ENDPOINT}?id=${listId}-${itemId}`, { headers: { 'Connection-ID': cid } })
-                .then((res) => res.text())
-                .then((htmlText) => insertListItem(htmlText, listId, itemId));
-        } else if (code === 'd') {
-            const [listId, itemId] = data.slice(2).split(':');
-            destroyListItem(listId, itemId);
-        } else if (code === 'r') {
-            const redirectUrl = data.slice(2);
-            if (redirectUrl) {
-                location.href = redirectUrl;
-            } else {
-                location.reload();
-            }
+        switch (code) {
+            case SIGNAL.STATE_CHANGE:
+                const [stateChangeId] = data.slice(2).split(':', 1);
+                const stateChangeValue = data.slice(stateChangeId.length + 3);
+                updateState(stateChangeId, stateChangeValue);
+                break;
+            case SIGNAL.LIST_UPDATE:
+                const [listUpdateId, itemUpdateId, replaceUpdateId] = data.slice(2).split(':');
+                const listPartial = `${PARTIAL_ENDPOINT}?id=${listUpdateId}-${itemUpdateId}`;
+                fetch(listPartial, { headers: { 'Connection-ID': cid } })
+                    .then((res) => res.text())
+                    .then((htmlText) => replaceListItem(htmlText, listUpdateId, itemUpdateId, replaceUpdateId));
+                break;
+            case SIGNAL.LIST_INSERT:
+                const [listInsertId, itemInsertId, nextInsertId] = data.slice(2).split(':');
+                const itemPartial = `${PARTIAL_ENDPOINT}?id=${listInsertId}-${itemInsertId}`;
+                fetch(itemPartial, { headers: { 'Connection-ID': cid } })
+                    .then((res) => res.text())
+                    .then((htmlText) => insertListItem(htmlText, listInsertId, itemInsertId, nextInsertId));
+                break;
+            case SIGNAL.LIST_INSERT_LAST:
+                const [listInsertLastId, itemInsertLastId] = data.slice(2).split(':');
+                const lastItemPartial = `${PARTIAL_ENDPOINT}?id=${listInsertLastId}-${itemInsertLastId}`;
+                fetch(lastItemPartial, { headers: { 'Connection-ID': cid } })
+                    .then((res) => res.text())
+                    .then((htmlText) => insertListItem(htmlText, listInsertLastId, itemInsertLastId));
+                break;
+            case SIGNAL.LIST_DELETE:
+                const [listDeleteId, itemDeleteId] = data.slice(2).split(':');
+                destroyListItem(listDeleteId, itemDeleteId);
+                break;
+            case SIGNAL.REDIRECT:
+                const redirectUrl = data.slice(2);
+                if (redirectUrl) {
+                    location.href = redirectUrl;
+                } else {
+                    location.reload();
+                }
+                break;
         }
     });
 }
