@@ -111,6 +111,12 @@ function bindForm(node: HTMLElement | Document) {
     }
 }
 
+function buttonifyButtons(node: HTMLElement | Document) {
+    for (const button of selectAll('button:not([type])', node)) {
+        button.setAttribute('type', 'button');
+    }
+}
+
 export function bindRecursive(node: HTMLElement | Document, context: Context = new Context()) {
     let listElement;
     while ((listElement = select('kerad[l]', node))) {
@@ -141,6 +147,7 @@ export function bindRecursive(node: HTMLElement | Document, context: Context = n
     bindState(node, context);
     bindTrigger(node);
     bindForm(node);
+    buttonifyButtons(node);
 }
 
 export function updateState(stateId: string, value: string) {
