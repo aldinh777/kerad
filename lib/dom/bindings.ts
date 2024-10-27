@@ -158,16 +158,34 @@ export function updateState(stateId: string, value: string) {
 }
 
 export function destroyListItem(listId: string, itemId: string) {
-    const list = listBindings.get(listId)!;
-    const item = list.items.get(itemId)!;
+    const list = listBindings.get(listId);
+    if (!list) {
+        throw new Error(`failed to delete list item, missing list`);
+    }
+    const item = list.items.get(itemId);
+    if (!item) {
+        throw new Error(`failed to delete list item, missing item`);
+    }
     destroyElements(item.begin, item.end);
     item.context.dismount();
     list.items.delete(itemId);
 }
 
 export function insertListItem(html: string, listId: string, itemId: string, nextId?: string) {
-    const list = listBindings.get(listId)!;
-    const targetBefore = nextId ? list.items.get(nextId)!.begin : list.end;
+    const list = listBindings.get(listId);
+    if (!list) {
+        throw new Error(`failed to insert list item, missing list`);
+    }
+    let targetBefore;
+    if (nextId) {
+        const nextElem = list.items.get(nextId);
+        if (!nextElem) {
+            throw new Error(`failed to insert, missing item`);
+        }
+        targetBefore = nextElem.begin;
+    } else {
+        targetBefore = list.end;
+    }
     const holder = document.createElement('div');
     holder.innerHTML = html;
     const itemBegin = text();

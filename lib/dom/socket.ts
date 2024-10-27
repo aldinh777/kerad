@@ -11,6 +11,13 @@ const SIGNAL = {
     REDIRECT: 'r'
 };
 
+function fetchPartial(response: Response) {
+    if (!response.ok) {
+        throw new Error('failed to fetch partial');
+    }
+    return response.text();
+}
+
 export async function initSocket() {
     const cid = document.body.getAttribute('kerad-cid')!;
     const socket = new WebSocket(`ws://${location.host}/connect?cid=${cid}`);
@@ -26,21 +33,21 @@ export async function initSocket() {
                 const [listUpdateId, itemUpdateId, replaceUpdateId] = data.slice(2).split(':');
                 const listPartial = `${PARTIAL_ENDPOINT}?id=${listUpdateId}-${itemUpdateId}`;
                 fetch(listPartial, { headers: { 'Connection-ID': cid } })
-                    .then((res) => res.text())
+                    .then(fetchPartial)
                     .then((htmlText) => replaceListItem(htmlText, listUpdateId, itemUpdateId, replaceUpdateId));
                 break;
             case SIGNAL.LIST_INSERT:
                 const [listInsertId, itemInsertId, nextInsertId] = data.slice(2).split(':');
                 const itemPartial = `${PARTIAL_ENDPOINT}?id=${listInsertId}-${itemInsertId}`;
                 fetch(itemPartial, { headers: { 'Connection-ID': cid } })
-                    .then((res) => res.text())
+                    .then(fetchPartial)
                     .then((htmlText) => insertListItem(htmlText, listInsertId, itemInsertId, nextInsertId));
                 break;
             case SIGNAL.LIST_INSERT_LAST:
                 const [listInsertLastId, itemInsertLastId] = data.slice(2).split(':');
                 const lastItemPartial = `${PARTIAL_ENDPOINT}?id=${listInsertLastId}-${itemInsertLastId}`;
                 fetch(lastItemPartial, { headers: { 'Connection-ID': cid } })
-                    .then((res) => res.text())
+                    .then(fetchPartial)
                     .then((htmlText) => insertListItem(htmlText, listInsertLastId, itemInsertLastId));
                 break;
             case SIGNAL.LIST_DELETE:
