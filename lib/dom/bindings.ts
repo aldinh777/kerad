@@ -1,11 +1,10 @@
 import type { Component } from '@aldinh777/kerad-jsx';
 import { Context } from '@aldinh777/kerad-core/context.ts';
-import { destroyElements, renderDom, select, selectAll, text } from './dom.ts';
+import { destroyElements, renderDom, select, selectAll, setProperty, text } from './dom.ts';
 
 interface BindData {
-    elem: any;
-    attr?: string;
-    bind?: string;
+    elem: HTMLElement;
+    prop: string;
 }
 interface ElementBorderData {
     context: Context;
@@ -29,12 +28,12 @@ function removeFromArray<T>(arr: T[], item: T) {
     }
 }
 
-function setBinding(stateId: string, elem: any, type: 'bind' | 'attr', value: string) {
+function setBinding(stateId: string, elem: any, prop: string) {
     if (!stateBindings.has(stateId)) {
         stateBindings.set(stateId, []);
     }
     const bindings = stateBindings.get(stateId)!;
-    const item = { elem, [type]: value };
+    const item = { elem, prop };
     bindings.push(item);
     return () => {
         removeFromArray(bindings, item);
@@ -64,23 +63,15 @@ function bindState(node: HTMLElement | Document, context: Context) {
         const stateId = elem.getAttribute('s')!;
         const text = document.createTextNode(elem.textContent || '');
         elem.replaceWith(text);
-        context.onMount(() => setBinding(stateId, text, 'bind', 'data'));
+        context.onMount(() => setBinding(stateId, text, 'data'));
     }
     for (const elem of selectAll('[kerad-p]', node)) {
         const attribs = elem.getAttribute('kerad-p')!;
         for (const propPair of attribs.split(' ')) {
             const [prop, stateId] = propPair.split(':');
-            context.onMount(() => setBinding(stateId, elem, 'attr', prop));
+            context.onMount(() => setBinding(stateId, elem, prop));
         }
         elem.removeAttribute('kerad-p');
-    }
-    for (const elem of selectAll('[kerad-b]', node)) {
-        const binds = elem.getAttribute('kerad-b')!;
-        for (const propPair of binds.split(' ')) {
-            const [prop, stateId] = propPair.split(':');
-            context.onMount(() => setBinding(stateId, elem, 'bind', prop));
-        }
-        elem.removeAttribute('kerad-b');
     }
 }
 
@@ -154,12 +145,8 @@ export function bindRecursive(node: HTMLElement | Document, context: Context = n
 
 export function updateState(stateId: string, value: string) {
     const bindings = stateBindings.get(stateId);
-    for (const { elem, bind, attr } of bindings || []) {
-        if (bind) {
-            elem[bind] = value;
-        } else {
-            elem.setAttribute(attr, value);
-        }
+    for (const { elem, prop } of bindings || []) {
+        setProperty(elem, prop, value);
     }
 }
 

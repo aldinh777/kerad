@@ -28,6 +28,14 @@ export function destroyElements(startMarker: any, endMarker: any) {
     endMarker?.remove();
 }
 
+export function setProperty(elem: HTMLElement, prop: string, value: any) {
+    if (prop in elem) {
+        (elem as any)[prop] = value;
+    } else {
+        elem.setAttribute(prop, value);
+    }
+}
+
 function renderProps(elem: HTMLElement, props: Props, context: Context) {
     for (const prop in props) {
         const value = props[prop];
@@ -37,10 +45,10 @@ function renderProps(elem: HTMLElement, props: Props, context: Context) {
             const eventName = prop.slice(3);
             elem.addEventListener(eventName, value);
         } else if (typeof value === 'function' && 'onChange' in value) {
-            elem.setAttribute(prop, value());
+            setProperty(elem, prop, value());
             context.onMount(() => value.onChange((value: any) => elem.setAttribute(prop, value), true));
         } else {
-            elem.setAttribute(prop, value);
+            setProperty(elem, prop, value);
         }
     }
 }

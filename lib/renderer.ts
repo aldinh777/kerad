@@ -59,21 +59,12 @@ function isReactive(state: any): state is State {
 
 function renderProps(props: Props, context: ServerContext) {
     const reactiveProps: [prop: string, stateId: string][] = [];
-    const reactiveBinds: [prop: string, stateId: string][] = [];
     const eventsProps: [event: string, handlerId: string][] = [];
     let strProps = '';
     for (const prop in props) {
         const value = props[prop];
         if (prop === 'children') {
             continue;
-        } else if (prop.startsWith('bind:')) {
-            const propName = prop.slice(5);
-            if (isReactive(value)) {
-                reactiveBinds.push([propName, registerState(value, context)]);
-                strProps += ` ${propName}="${value()}"`;
-            } else {
-                strProps += ` ${propName}="${value}"`;
-            }
         } else if (prop.startsWith('on:')) {
             const eventName = prop.slice(3);
             eventsProps.push([eventName, registerTriggerHandler(value, context)]);
@@ -86,9 +77,6 @@ function renderProps(props: Props, context: ServerContext) {
     }
     if (reactiveProps.length) {
         strProps += ` kerad-p="${reactiveProps.map((p) => p.join(':')).join(' ')}"`;
-    }
-    if (reactiveBinds.length) {
-        strProps += ` kerad-b="${reactiveBinds.map((p) => p.join(':')).join(' ')}"`;
     }
     if (eventsProps.length) {
         strProps += ` kerad-t="${eventsProps.map((t) => t.join(':')).join(' ')}"`;
