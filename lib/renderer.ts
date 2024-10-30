@@ -57,6 +57,15 @@ function isReactive(state: any): state is State {
     return typeof state === 'function' && 'onChange' in state;
 }
 
+function escapeHtml(html: string) {
+    return html
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function renderProps(props: Props, context: ServerContext) {
     const reactiveProps: [prop: string, stateId: string][] = [];
     const eventsProps: [event: string, handlerId: string][] = [];
@@ -72,11 +81,11 @@ function renderProps(props: Props, context: ServerContext) {
             reactiveProps.push([prop, registerState(value, context)]);
             const val = value();
             if (val !== false) {
-                strProps += ` ${prop}="${val}"`;
+                strProps += ` ${prop}="${escapeHtml(val)}"`;
             }
         } else {
             if (value !== false) {
-                strProps += ` ${prop}="${value}"`;
+                strProps += ` ${prop}="${escapeHtml(value)}"`;
             }
         }
     }
@@ -94,10 +103,10 @@ async function renderToHtml(item: Node | Node[], context: ServerContext): Promis
         const htmlArray = await Promise.all(item.map((nested) => renderToHtml(nested, context)));
         return htmlArray.join('');
     } else if (typeof item === 'string') {
-        return item;
+        return escapeHtml(item);
     } else if (typeof item === 'function') {
         if ('onChange' in item) {
-            return `<kerad s="${registerState(item, context)}">${item()}</kerad>`;
+            return `<kerad s="${registerState(item, context)}">${escapeHtml(item())}</kerad>`;
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
             const listId = registerList(item, context);
             const childrenOutput = await Promise.all(
@@ -128,7 +137,7 @@ async function renderToHtml(item: Node | Node[], context: ServerContext): Promis
             return await renderToHtml(await tag(props, context), context);
         }
     }
-    return String(item);
+    return escapeHtml(String(item));
 }
 
 export async function renderPage(layout: string, component: any, context: ServerContext): Promise<string> {
