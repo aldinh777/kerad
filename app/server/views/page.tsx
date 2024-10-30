@@ -2,12 +2,16 @@ import { computed, state } from '@aldinh777/reactive';
 import { list } from '@aldinh777/reactive/list';
 import { login } from '../../../db/repositories/user.ts';
 
-export default async function Views(_: any) {
+export default async function Views() {
     const status = state('not logged in');
     const submitting = state(false);
     const disabledStyle = computed(() => (submitting() ? 'display: none;' : 'display: block'));
     const reverseDisabledStyle = computed(() => (!submitting() ? 'display: none;' : 'display: block'));
-    const submitButton = <button style={disabledStyle}>Login</button>;
+    const submitButton = (
+        <button type="submit" style={disabledStyle}>
+            Login
+        </button>
+    );
     const disabledButton = (
         <button disabled="" style={reverseDisabledStyle}>
             Login
