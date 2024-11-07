@@ -15,17 +15,24 @@ export const elem = (tag: string, props: Props, context: Context) => {
     return el;
 };
 
-export const select = (query: string, node: HTMLElement | Document = document) => node.querySelector(query);
-export const selectAll = (query: string, node: HTMLElement | Document = document) =>
-    node.querySelectorAll(query) as unknown as HTMLElement[];
+export const select = <T = HTMLElement>(query: string, node: HTMLElement | Document = document) =>
+    node.querySelector(query) as T;
+export const selectAll = <T = HTMLElement>(query: string, node: HTMLElement | Document = document) =>
+    node.querySelectorAll(query) as unknown as T[];
 
-export function destroyElements(startMarker: any, endMarker: any) {
-    while (startMarker !== endMarker) {
-        const node = startMarker;
-        startMarker = startMarker.nextSibling!;
+export function destroyElements(startMarker: Text, endMarker: Text, contentsOnly = false) {
+    let marker: any = startMarker;
+    if (contentsOnly) {
+        marker = marker.nextSibling;
+    }
+    while (marker !== endMarker) {
+        const node = marker;
+        marker = startMarker.nextSibling!;
         node.remove();
     }
-    endMarker?.remove();
+    if (!contentsOnly) {
+        endMarker.remove();
+    }
 }
 
 export function setProperty(elem: HTMLElement, prop: string, value: any) {

@@ -77,6 +77,11 @@ export async function routeUrl(connection: Context): Promise<Response> {
             continue;
         }
 
+        // skip if the current urlPath is '', indicating the root path
+        if (!urlPath) {
+            continue;
+        }
+
         const items = await readdir(routeDir);
 
         // push any layout.html if there is any
@@ -92,11 +97,6 @@ export async function routeUrl(connection: Context): Promise<Response> {
             if (res) {
                 return res as Response;
             }
-        }
-
-        // skip if the current urlPath is '', indicating the root path
-        if (!urlPath) {
-            continue;
         }
 
         // find the next directory to check and compare with the url

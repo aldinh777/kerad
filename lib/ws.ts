@@ -47,6 +47,10 @@ export function pushStateChange(topics: Iterable<string>, value: string, stateId
     publish(topics, 'c', stateId, value);
 }
 
+export function pushElementChange(topics: Iterable<string>, stateId: string) {
+    publish(topics, 'e', stateId);
+}
+
 export function pushListUpdate(topics: Iterable<string>, listId: string, itemId: string, prevId: string) {
     publish(topics, 'u', listId, itemId, prevId);
 }

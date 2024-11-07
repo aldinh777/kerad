@@ -19,6 +19,7 @@ const TRIGGER_ENDPOINT = '/kerad/trigger';
 const SUBMIT_ENDPOINT = '/kerad/submit';
 
 const stateBindings = new Map<string, BindData[]>();
+const elementBindings = new Map<string, ElementBorderData>();
 const listBindings = new Map<string, ListElementData>();
 
 function removeFromArray<T>(arr: T[], item: T) {
@@ -73,6 +74,49 @@ function bindState(node: HTMLElement | Document, context: Context) {
         }
         elem.removeAttribute('kerad-p');
     }
+    let stateElement;
+    if ((stateElement = select('kerad[e]', node))) {
+        const elemId = stateElement.getAttribute('e')!;
+        const elemContext = new Context();
+        const elemBegin = text('');
+        const elemEnd = text('');
+        elementBindings.set(elemId, { begin: elemBegin, end: elemEnd, context: elemContext });
+        context.onDismount(() => elemContext.dismount());
+        bindRecursive(stateElement, elemContext);
+        const contents = [elemBegin, ...(stateElement.childNodes as any), elemEnd];
+        for (const content of contents) {
+            stateElement.parentNode?.insertBefore(content, stateElement);
+        }
+        stateElement.remove();
+    }
+}
+
+function bindListItem(node: HTMLElement | Document, context: Context) {
+    let listElement;
+    while ((listElement = select('kerad[l]', node))) {
+        const listId = listElement.getAttribute('l')!;
+        const listBegin = text();
+        const listEnd = text();
+        const listItems = new Map<string, ElementBorderData>();
+        listBindings.set(listId, { begin: listBegin, end: listEnd, items: listItems, context });
+        const contents: any[] = [listBegin];
+        for (const item of listElement.children as unknown as HTMLElement[]) {
+            const itemId = item.getAttribute('i')!;
+            const itemContext = new Context();
+            const itemBegin = text();
+            const itemEnd = text();
+            listItems.set(itemId, { begin: itemBegin, end: itemEnd, context: itemContext });
+            context.onDismount(() => itemContext.dismount());
+            contents.push(itemBegin);
+            bindRecursive(item, itemContext);
+            contents.push(...(item.childNodes as any), itemEnd);
+        }
+        contents.push(listEnd);
+        for (const content of contents) {
+            listElement.parentNode?.insertBefore(content, listElement);
+        }
+        listElement.remove();
+    }
 }
 
 function bindTrigger(node: HTMLElement | Document) {
@@ -100,7 +144,7 @@ function bindForm(node: HTMLElement | Document) {
             const formData: any = new FormData(form);
             fetch(`${SUBMIT_ENDPOINT}?id=${formId}`, { method: 'post', body: formData });
             const afterSubmit = form.getAttribute('afterSubmit');
-            for (const input of selectAll('[name]', form) as unknown as HTMLInputElement[]) {
+            for (const input of selectAll<HTMLInputElement>('[name]', form)) {
                 if (afterSubmit === 'reset' || input.getAttribute('afterSubmit') === 'reset') {
                     input.value = input.getAttribute('resetValue') || '';
                 }
@@ -118,31 +162,7 @@ function buttonifyButtons(node: HTMLElement | Document) {
 }
 
 export function bindRecursive(node: HTMLElement | Document, context: Context = new Context()) {
-    let listElement;
-    while ((listElement = select('kerad[l]', node))) {
-        const listId = listElement.getAttribute('l')!;
-        const listBegin = text();
-        const listEnd = text();
-        const listItems = new Map<string, ElementBorderData>();
-        listBindings.set(listId, { begin: listBegin, end: listEnd, items: listItems, context });
-        const contents: any[] = [listBegin];
-        for (const item of listElement.children as unknown as HTMLElement[]) {
-            const itemId = item.getAttribute('i')!;
-            const itemContext = new Context();
-            const itemBegin = text();
-            const itemEnd = text();
-            listItems.set(itemId, { begin: itemBegin, end: itemEnd, context: itemContext });
-            context.onDismount(() => itemContext.dismount());
-            contents.push(itemBegin);
-            bindRecursive(item, itemContext);
-            contents.push(...(item.childNodes as any), itemEnd);
-        }
-        contents.push(listEnd);
-        for (const content of contents) {
-            listElement.parentNode?.insertBefore(content, listElement);
-        }
-        listElement.remove();
-    }
+    bindListItem(node, context);
     bindClientComponent(node, context);
     bindState(node, context);
     bindTrigger(node);
@@ -154,6 +174,22 @@ export function updateState(stateId: string, value: string) {
     const bindings = stateBindings.get(stateId);
     for (const { elem, prop } of bindings || []) {
         setProperty(elem, prop, value);
+    }
+}
+
+export function updateElement(elemId: string, html: string) {
+    const elem = elementBindings.get(elemId);
+    if (!elem) {
+        throw new Error(`failed to update element, missing element`);
+    }
+    const begin = elem.begin;
+    const end = elem.end;
+    destroyElements(begin, end, true);
+    const holder = document.createElement('div');
+    holder.innerHTML = html;
+    bindRecursive(holder, elem.context);
+    while (holder.firstChild) {
+        end.parentNode?.insertBefore(holder.firstChild, end);
     }
 }
 

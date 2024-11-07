@@ -13,10 +13,16 @@ export function registerState(state: State, context: ServerContext) {
         onCreate() {
             const stateId = stateIdGenerator.next();
             const connectionMap = new Map<string, Set<string>>();
+            const val = state();
+            let subContext: ServerContext | undefined;
+            if (val instanceof Object) {
+                subContext = new ServerContext(stateId, context.connection, context.params);
+                context.onDismount(() => subContext?.dismount());
+            }
             return {
                 id: stateId,
                 connectionMap: connectionMap,
-                unsubscribe: uniqueHandlers.state?.(state, stateId, connectionMap)
+                unsubscribe: uniqueHandlers.state?.(state, stateId, connectionMap, subContext)
             };
         },
         onEmpty(stateId) {

@@ -11,11 +11,26 @@ import {
     setRegistryHandler,
     unregisterPartial
 } from '@aldinh777/kerad-core';
-import { pushListDelete, pushListInsert, pushListInsertLast, pushListUpdate, pushStateChange } from './ws.ts';
+import {
+    pushElementChange,
+    pushListDelete,
+    pushListInsert,
+    pushListInsertLast,
+    pushListUpdate,
+    pushStateChange
+} from './ws.ts';
 
 setRegistryHandler({
-    state(state, stateId, connectionMap) {
-        return state.onChange((value) => pushStateChange(connectionMap.keys(), JSON.stringify(value), stateId), true);
+    state(state, stateId, connectionMap, subContext) {
+        return state.onChange(async (value) => {
+            if (subContext) {
+                subContext.dismount();
+                registerPartial(stateId, await renderToHtml(value, subContext), new Set(connectionMap.keys()));
+                pushElementChange(connectionMap.keys(), stateId);
+            } else {
+                pushStateChange(connectionMap.keys(), JSON.stringify(value), stateId);
+            }
+        }, true);
     },
     list(mappedList, listId, connectionMap) {
         const unsubWatch = mappedList.watch({
@@ -106,7 +121,13 @@ async function renderToHtml(item: Node | Node[], context: ServerContext): Promis
         return escapeHtml(item);
     } else if (typeof item === 'function') {
         if ('onChange' in item) {
-            return `<kerad s="${registerState(item, context)}">${escapeHtml(item())}</kerad>`;
+            const stateId = registerState(item, context);
+            const val = item();
+            if (val instanceof Object) {
+                return `<kerad e="${stateId}">${await renderToHtml(val, context)}</kerad>`;
+            } else {
+                return `<kerad s="${stateId}">${escapeHtml(String(val))}</kerad>`;
+            }
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
             const listId = registerList(item, context);
             const childrenOutput = await Promise.all(

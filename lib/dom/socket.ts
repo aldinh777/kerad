@@ -1,9 +1,10 @@
-import { destroyListItem, insertListItem, replaceListItem, updateState } from './bindings';
+import { destroyListItem, insertListItem, replaceListItem, updateState, updateElement } from './bindings';
 
 const PARTIAL_ENDPOINT = '/kerad/partial';
 
 const SIGNAL = {
     STATE_CHANGE: 'c',
+    ELEMENT_CHANGE: 'e',
     LIST_UPDATE: 'u',
     LIST_INSERT: 'i',
     LIST_INSERT_LAST: 'l',
@@ -28,6 +29,13 @@ export async function initSocket() {
                 const [stateChangeId] = data.slice(2).split(':', 1);
                 const stateChangeValue = data.slice(stateChangeId.length + 3);
                 updateState(stateChangeId, JSON.parse(stateChangeValue));
+                break;
+            case SIGNAL.ELEMENT_CHANGE:
+                const [elementChangeId] = data.slice(2).split(':', 1);
+                const elementPartial = `${PARTIAL_ENDPOINT}?id=${elementChangeId}`;
+                fetch(elementPartial, { headers: { 'Connection-ID': cid } })
+                    .then(fetchPartial)
+                    .then((htmlText) => updateElement(elementChangeId, htmlText));
                 break;
             case SIGNAL.LIST_UPDATE:
                 const [listUpdateId, itemUpdateId, replaceUpdateId] = data.slice(2).split(':');

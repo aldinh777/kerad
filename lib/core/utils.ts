@@ -44,7 +44,12 @@ interface ContextDataHandler {
     onEmpty(id: string): any;
 }
 interface UniqueHandlers {
-    state?: (state: State, stateId: string, connections: Map<string, Set<string>>) => () => void;
+    state?: (
+        state: State,
+        stateId: string,
+        connections: Map<string, Set<string>>,
+        subContext?: ServerContext
+    ) => () => void;
     list?: (mappedList: WatchableList<StoredItem>, listId: string, connections: Map<string, Set<string>>) => () => void;
 }
 
