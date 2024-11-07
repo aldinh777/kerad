@@ -6,28 +6,44 @@ export default function TestPage() {
     const rawProp = state('" onClick="alert(\'xss injection\')"');
     const isOpen = state(true);
     const isRoven = state(true);
-    const allIn = computed(() =>
-        isOpen() ? (
-            <div>
-                Partisan {computed(() => (isRoven() ? <div>{rawHTML}</div> : <div>Falso</div>))}
-                <button on:click={() => isRoven(!isRoven())}>Togel Roven</button>
-            </div>
-        ) : (
-            <div>Non Partisan {rawHTML}</div>
-        )
-    );
     const ll = list(['a', 'b', 'c', 'd', 'e']);
     const elem = ll.map((i) => <li>{i}</li>);
+    const allIn = computed(() =>
+        isOpen() ? (
+            <>
+                <div style="background-color: red">
+                    <h4>List</h4>
+                    <ol>{elem}</ol>
+                </div>
+                Partisan :
+                <div style="background-color: gray">
+                    <h5>Roven</h5>
+                    <div>{computed(() => (isRoven() ? <div>{rawHTML}</div> : <div>Falso</div>))}</div>
+                </div>
+                <button on:click={() => isRoven(!isRoven())}>Togel Roven</button>
+            </>
+        ) : (
+            <>Non Partisan</>
+        )
+    );
     return (
         <div>
-            <ol>{elem}</ol>
-            {allIn}
+            <div style="background-color: green">
+                <h3>First All In</h3>
+                <div>{allIn}</div>
+            </div>
+            <div style="background-color: orange">
+                <h3>Second All In</h3>
+                <div>{allIn}</div>
+            </div>
+            <div style="background-color: blue">
+                <h3>Duped List</h3>
+                <ul>{elem}</ul>
+            </div>
             <div>
                 <button on:click={() => isOpen(!isOpen())}>Toggle Layout</button>
             </div>
-            {allIn}
             {rawHTML}
-            <ul>{elem}</ul>
             <button on:click={() => ll.pop()}>pop</button>
             <div class={rawProp}>Sample Element</div>
             <input type="text" value={rawHTML} on:change={(val: string) => rawHTML(val)} />
