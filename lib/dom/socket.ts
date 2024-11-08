@@ -19,7 +19,7 @@ function fetchPartial(response: Response) {
     return response.text();
 }
 
-export async function initSocket() {
+export function initSocket() {
     const cid = document.body.getAttribute('kerad-cid')!;
     const socket = new WebSocket(`ws://${location.host}/connect?cid=${cid}`);
     socket.addEventListener('message', ({ data }) => {

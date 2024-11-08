@@ -1,11 +1,11 @@
 interface PartialData {
-    content: string;
+    content: string | Promise<string>;
     connectionSet: Set<string>;
 }
 
 const partialMap = new Map<string, PartialData>();
 
-export function registerPartial(partialId: string, output: string, connectionSet: Set<string>) {
+export function registerPartial(partialId: string, output: string | Promise<string>, connectionSet: Set<string>) {
     partialMap.set(partialId, { content: output, connectionSet });
 }
 

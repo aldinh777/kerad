@@ -22,10 +22,10 @@ import {
 
 setRegistryHandler({
     state(state, stateId, connectionMap, subContext) {
-        return state.onChange(async (value) => {
+        return state.onChange((value) => {
             if (subContext) {
                 subContext.dismount();
-                registerPartial(stateId, await renderToHtml(value, subContext), new Set(connectionMap.keys()));
+                registerPartial(stateId, renderToHtml(value, subContext), new Set(connectionMap.keys()));
                 pushElementChange(connectionMap.keys(), stateId);
             } else {
                 pushStateChange(connectionMap.keys(), JSON.stringify(value), stateId);
@@ -34,15 +34,15 @@ setRegistryHandler({
     },
     list(mappedList, listId, connectionMap) {
         const unsubWatch = mappedList.watch({
-            async update(_index, { item, context }, prev) {
-                const rendered = await renderToHtml(item, context);
+            update(_index, { item, context }, prev) {
+                const rendered = renderToHtml(item, context);
                 const partialId = `${listId}-${context.id}`;
                 registerPartial(partialId, rendered, new Set(connectionMap.keys()));
                 context.onDismount(() => unregisterPartial(partialId));
                 pushListUpdate(connectionMap.keys(), listId, context.id, prev.context.id);
             },
-            async insert(index, { item, context }) {
-                const rendered = await renderToHtml(item, context);
+            insert(index, { item, context }) {
+                const rendered = renderToHtml(item, context);
                 const isLast = index >= mappedList().length - 1;
                 const next = mappedList(index + 1);
                 const partialId = `${listId}-${context.id}`;

@@ -19,11 +19,11 @@ async function md5HashImport(filename: string) {
 function responseFromStatus(status: string, data?: any) {
     switch (status) {
         case 'ok':
-            return new Response('ok');
+            return new Response();
         case 'not found':
-            return new Response('not found', { status: 404 });
+            return new Response(null, { status: 404 });
         case 'unauthorized':
-            return new Response('unauthorized', { status: 401 });
+            return new Response(null, { status: 401 });
         case 'partial':
             return new Response(data, { headers: { 'Content-Type': 'text/html' } });
         // @ts-ignore
@@ -34,18 +34,18 @@ function responseFromStatus(status: string, data?: any) {
     }
 }
 
-export function handlePartial(partialId: string, connectionId: string) {
+export async function handlePartial(partialId: string, connectionId: string) {
     const { result, content } = renderPartial(partialId, connectionId);
-    return responseFromStatus(result, content);
+    return responseFromStatus(result, await content);
 }
 
-export function handleTrigger(triggerId: string, value: string) {
-    const { result, error } = triggerHandler(triggerId, value);
+export async function handleTrigger(triggerId: string, value: Promise<string>) {
+    const { result, error } = triggerHandler(triggerId, await value);
     return responseFromStatus(result, error);
 }
 
-export function handleSubmit(formId: string, formData: FormData) {
-    const { result, error } = submitForm(formId, formData);
+export async function handleSubmit(formId: string, formData: Promise<FormData>) {
+    const { result, error } = submitForm(formId, await formData);
     return responseFromStatus(result, error);
 }
 
