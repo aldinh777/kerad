@@ -27,7 +27,7 @@ export function destroyElements(startMarker: Text, endMarker: Text, contentsOnly
     }
     while (marker !== endMarker) {
         const node = marker;
-        marker = startMarker.nextSibling!;
+        marker = marker.nextSibling!;
         node.remove();
     }
     if (!contentsOnly) {
