@@ -12,12 +12,21 @@ const SIGNAL = {
     REDIRECT: 'r'
 };
 
-function fetchPartial(response: Response) {
+const PARTIAL_QUEUE = new Set<string>();
+
+const addQueue = (partialId: string) => PARTIAL_QUEUE.add(partialId);
+const removeQueue = (partialId: string) => PARTIAL_QUEUE.delete(partialId);
+
+const fetchPartial = (partialId: string) => (response: Response) => {
     if (!response.ok) {
+        PARTIAL_QUEUE.delete(partialId);
         throw new Error('failed to fetch partial');
     }
+    if (!PARTIAL_QUEUE.has(partialId)) {
+        throw new Error('partial removed from queue');
+    }
     return response.text();
-}
+};
 
 export function initSocket() {
     const cid = document.body.getAttribute('kerad-cid')!;
@@ -32,35 +41,47 @@ export function initSocket() {
                 break;
             case SIGNAL.ELEMENT_CHANGE:
                 const [elementChangeId] = data.slice(2).split(':', 1);
-                const elementPartial = `${PARTIAL_ENDPOINT}?id=${elementChangeId}`;
-                fetch(elementPartial, { headers: { 'Connection-ID': cid } })
-                    .then(fetchPartial)
-                    .then((htmlText) => updateElement(elementChangeId, htmlText));
+                addQueue(elementChangeId);
+                fetch(`${PARTIAL_ENDPOINT}?id=${elementChangeId}`, { headers: { 'Connection-ID': cid } })
+                    .then(fetchPartial(elementChangeId))
+                    .then((htmlText) => updateElement(elementChangeId, htmlText))
+                    .then(() => removeQueue(elementChangeId));
                 break;
             case SIGNAL.LIST_UPDATE:
                 const [listUpdateId, itemUpdateId, replaceUpdateId] = data.slice(2).split(':');
-                const listPartial = `${PARTIAL_ENDPOINT}?id=${listUpdateId}-${itemUpdateId}`;
-                fetch(listPartial, { headers: { 'Connection-ID': cid } })
-                    .then(fetchPartial)
-                    .then((htmlText) => replaceListItem(htmlText, listUpdateId, itemUpdateId, replaceUpdateId));
+                const updatePartialId = `${listUpdateId}-${itemUpdateId}`;
+                addQueue(updatePartialId);
+                fetch(`${PARTIAL_ENDPOINT}?id=${updatePartialId}`, { headers: { 'Connection-ID': cid } })
+                    .then(fetchPartial(updatePartialId))
+                    .then((htmlText) => replaceListItem(htmlText, listUpdateId, itemUpdateId, replaceUpdateId))
+                    .then(() => removeQueue(updatePartialId));
                 break;
             case SIGNAL.LIST_INSERT:
                 const [listInsertId, itemInsertId, nextInsertId] = data.slice(2).split(':');
-                const itemPartial = `${PARTIAL_ENDPOINT}?id=${listInsertId}-${itemInsertId}`;
-                fetch(itemPartial, { headers: { 'Connection-ID': cid } })
-                    .then(fetchPartial)
-                    .then((htmlText) => insertListItem(htmlText, listInsertId, itemInsertId, nextInsertId));
+                const insertPartialId = `${listInsertId}-${itemInsertId}`;
+                addQueue(insertPartialId);
+                fetch(`${PARTIAL_ENDPOINT}?id=${insertPartialId}`, { headers: { 'Connection-ID': cid } })
+                    .then(fetchPartial(insertPartialId))
+                    .then((htmlText) => insertListItem(htmlText, listInsertId, itemInsertId, nextInsertId))
+                    .then(() => removeQueue(insertPartialId));
                 break;
             case SIGNAL.LIST_INSERT_LAST:
                 const [listInsertLastId, itemInsertLastId] = data.slice(2).split(':');
-                const lastItemPartial = `${PARTIAL_ENDPOINT}?id=${listInsertLastId}-${itemInsertLastId}`;
-                fetch(lastItemPartial, { headers: { 'Connection-ID': cid } })
-                    .then(fetchPartial)
-                    .then((htmlText) => insertListItem(htmlText, listInsertLastId, itemInsertLastId));
+                const itemLastPartialId = `${listInsertLastId}-${itemInsertLastId}`;
+                addQueue(itemLastPartialId);
+                fetch(`${PARTIAL_ENDPOINT}?id=${itemLastPartialId}`, { headers: { 'Connection-ID': cid } })
+                    .then(fetchPartial(itemLastPartialId))
+                    .then((htmlText) => insertListItem(htmlText, listInsertLastId, itemInsertLastId))
+                    .then(() => removeQueue(itemLastPartialId));
                 break;
             case SIGNAL.LIST_DELETE:
                 const [listDeleteId, itemDeleteId] = data.slice(2).split(':');
-                destroyListItem(listDeleteId, itemDeleteId);
+                const listItemDeleteId = `${listDeleteId}-${itemDeleteId}`;
+                if (PARTIAL_QUEUE.has(listItemDeleteId)) {
+                    PARTIAL_QUEUE.delete(listItemDeleteId);
+                } else {
+                    destroyListItem(listDeleteId, itemDeleteId);
+                }
                 break;
             case SIGNAL.REDIRECT:
                 const redirectUrl = data.slice(2);
