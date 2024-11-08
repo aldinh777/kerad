@@ -45,6 +45,7 @@ export default function TestPage() {
             </div>
             {rawHTML}
             <button on:click={() => ll.pop()}>pop</button>
+            <button on:click={() => ll.push(rawProp())}>push</button>
             <div class={rawProp}>Sample Element</div>
             <input type="text" value={rawHTML} on:change={(val: string) => rawHTML(val)} />
             <input type="text" value={rawProp} on:change={(val: string) => rawProp(val)} />
