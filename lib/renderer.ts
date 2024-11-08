@@ -3,6 +3,7 @@ import type { Node, Props } from '@aldinh777/kerad-jsx';
 import type { State } from '@aldinh777/reactive';
 import {
     getListItem,
+    getSubContext,
     registerFormHandler,
     registerList,
     registerPartial,
@@ -23,6 +24,7 @@ import {
 setRegistryHandler({
     state(state, stateId, connectionMap, subContext) {
         return state.onChange((value) => {
+            console.log(value, subContext);
             if (subContext) {
                 subContext.dismount();
                 registerPartial(stateId, renderToHtml(value, subContext), new Set(connectionMap.keys()));
@@ -124,7 +126,8 @@ async function renderToHtml(item: Node | Node[], context: ServerContext): Promis
             const stateId = registerState(item, context);
             const val = item();
             if (val instanceof Object) {
-                return `<kerad e="${stateId}">${await renderToHtml(val, context)}</kerad>`;
+                const subContext = getSubContext(item)!;
+                return `<kerad e="${stateId}">${await renderToHtml(val, subContext)}</kerad>`;
             } else {
                 return `<kerad s="${stateId}">${escapeHtml(String(val))}</kerad>`;
             }

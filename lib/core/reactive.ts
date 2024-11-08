@@ -5,7 +5,11 @@ import { createIdGenerator, handleContextData, ServerContext, uniqueHandlers } f
 
 // Reactive State
 
-const stateMap = new Map<State, SubscriptionData>();
+interface StateSubscriptionData extends SubscriptionData {
+    subContext: ServerContext | undefined;
+}
+
+const stateMap = new Map<State, StateSubscriptionData>();
 const stateIdGenerator = createIdGenerator();
 
 export function registerState(state: State, context: ServerContext) {
@@ -22,13 +26,18 @@ export function registerState(state: State, context: ServerContext) {
             return {
                 id: stateId,
                 connectionMap: connectionMap,
-                unsubscribe: uniqueHandlers.state?.(state, stateId, connectionMap, subContext)
+                unsubscribe: uniqueHandlers.state?.(state, stateId, connectionMap, subContext),
+                subContext: subContext
             };
         },
         onEmpty(stateId) {
             stateIdGenerator.delete(stateId);
         }
     });
+}
+
+export function getSubContext(state: State) {
+    return stateMap.get(state)!.subContext;
 }
 
 // Reactive List

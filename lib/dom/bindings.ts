@@ -75,7 +75,7 @@ function bindState(node: HTMLElement | Document, context: Context) {
         elem.removeAttribute('kerad-p');
     }
     let stateElement;
-    if ((stateElement = select('kerad[e]', node))) {
+    while ((stateElement = select('kerad[e]', node))) {
         const elemId = stateElement.getAttribute('e')!;
         const elemContext = new Context();
         const elemBegin = text('');
