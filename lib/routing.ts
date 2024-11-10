@@ -85,8 +85,8 @@ export async function routeUrl(connection: Context): Promise<Response> {
                 nextDir = join(dir, paramDir);
                 dirItems = await readdir(nextDir);
                 if (paramDir.startsWith('[...')) {
-                    const paramName = paramDir.slice(3, -1);
-                    const restOfUrl = pathname.slice(i);
+                    const paramName = paramDir.slice(4, -1);
+                    const restOfUrl = pathname.slice(i, -1);
                     context.params[paramName] = decodeURI(url + restOfUrl);
                     i = pathname.length;
                 } else {
