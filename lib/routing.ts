@@ -16,21 +16,18 @@ async function md5HashImport(filename: string) {
     return await import(filename);
 }
 
-function responseFromStatus(status: string, data?: any) {
+function responseFromStatus(status: string, payload: any = null) {
     switch (status) {
         case 'ok':
-            return new Response();
+            return new Response(payload, { status: 200 });
         case 'not found':
-            return new Response(null, { status: 404 });
+            return new Response(payload, { status: 404 });
         case 'unauthorized':
-            return new Response(null, { status: 401 });
+            return new Response(payload, { status: 401 });
         case 'partial':
-            return new Response(data, { headers: { 'Content-Type': 'text/html' } });
-        // @ts-ignore
-        case 'error':
-            console.error(data);
+            return new Response(payload, { headers: { 'Content-Type': 'text/html' } });
         default:
-            return new Response('error', { status: 500 });
+            return new Response(payload, { status: 500 });
     }
 }
 
@@ -62,78 +59,64 @@ export async function handleStaticFile(pathname: string) {
 }
 
 export async function routeUrl(connection: Context): Promise<Response> {
-    const pathname = connection.req.path.endsWith('/') ? connection.req.path : connection.req.path + '/';
-    const urlArray = pathname === '/' ? [''] : pathname.split('/');
+    const path = connection.req.path;
+    const pathname = path.endsWith('/') ? path : path + '/';
     const layoutStack: string[] = [];
     const context = registerConnection(connection);
-    let routeDir = ROUTE_PATH;
+    let dir = ROUTE_PATH;
+    let url = '';
 
-    const restStack = [];
-    let restFlag = false;
-    let restName = '';
-    for (const urlPath of urlArray) {
-        if (restFlag) {
-            restStack.push(urlPath);
+    for (let i = 0; i < pathname.length; i++) {
+        const c = pathname[i];
+        if (c !== '/') {
+            url += c;
             continue;
         }
 
-        // skip if the current urlPath is '', indicating the root path
-        if (!urlPath) {
-            continue;
+        let nextDir = join(dir, url);
+        let dirItems: string[];
+
+        try {
+            dirItems = await readdir(nextDir);
+        } catch (err: any) {
+            const parentItems = await readdir(dir);
+            const paramDir = parentItems.find((item) => item.startsWith('[') && item.endsWith(']'));
+            if (paramDir) {
+                nextDir = join(dir, paramDir);
+                dirItems = await readdir(nextDir);
+                if (paramDir.startsWith('[...')) {
+                    const paramName = paramDir.slice(3, -1);
+                    const restOfUrl = pathname.slice(i);
+                    context.params[paramName] = decodeURI(url + restOfUrl);
+                    i = pathname.length;
+                } else {
+                    const paramName = paramDir.slice(1, -1);
+                    context.params[paramName] = decodeURI(url);
+                }
+            } else {
+                return responseFromStatus('not found');
+            }
         }
 
-        const items = await readdir(routeDir);
+        url = '';
+        dir = nextDir;
 
-        // push any layout.html if there is any
-        if (items.includes('layout.html')) {
-            layoutStack.push(join(routeDir, 'layout.html'));
+        if (dirItems.includes('layout.html')) {
+            layoutStack.push(join(dir, 'layout.html'));
         }
 
-        // execute and return middleware response if there is any
-        if (items.includes('middleware.ts')) {
-            const middlewareFile = join(routeDir, 'middleware.ts');
+        if (dirItems.includes('middleware.ts')) {
+            const middlewareFile = join(dir, 'middleware.ts');
             const middleware = await md5HashImport(middlewareFile);
             const res = await middleware.default(context);
             if (res) {
                 return res as Response;
             }
         }
-
-        // find the next directory to check and compare with the url
-        // if current directory has exactly a subdirectory with the same name as the path in the url
-        if (items.includes(urlPath)) {
-            routeDir = join(routeDir, urlPath);
-            continue;
-        }
-
-        // check for each subdirectories if there is any [param] or [...param] like subdirectory
-        let noMatch = true;
-        for (const item of items.filter((item) => item.startsWith('[') && item.endsWith(']'))) {
-            const match = item.match(/\[(\.{3})?([$\w\d+-]+)\]/);
-            if (match) {
-                const [, isRest, param] = match;
-                if (isRest) {
-                    restFlag = true;
-                    restName = param;
-                    restStack.push(decodeURI(urlPath));
-                } else {
-                    context.params[param] = decodeURI(urlPath);
-                }
-                routeDir = join(routeDir, item);
-                noMatch = false;
-                break;
-            }
-        }
-
-        if (noMatch) {
-            return new Response('not found', { status: 404 });
-        }
     }
-    if (restFlag) {
-        context.params[restName] = decodeURI(restStack.join('/'));
-    }
-    const pageFilePath = join(routeDir, 'page.tsx');
-    const pageFile = file(pageFilePath);
+
+    const pagePath = join(dir, 'page.tsx');
+    const pageFile = file(pagePath);
     if (await pageFile.exists()) {
         const htmlLayout = await layoutStack.reduce(
             (html, path) =>
@@ -144,9 +127,12 @@ export async function routeUrl(connection: Context): Promise<Response> {
                 ),
             Promise.resolve('%PAGE%')
         );
-        const component = await md5HashImport(pageFilePath);
+        const component = await md5HashImport(pagePath);
         const renderOutput = await renderPage(htmlLayout, component, context);
+        if (renderOutput instanceof Response) {
+            return renderOutput;
+        }
         return context.connection.html(renderOutput);
     }
-    return new Response('not found', { status: 404 });
+    return responseFromStatus('error', 'page not found');
 }

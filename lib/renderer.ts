@@ -24,7 +24,6 @@ import {
 setRegistryHandler({
     state(state, stateId, connectionMap, subContext) {
         return state.onChange((value) => {
-            console.log(value, subContext);
             if (subContext) {
                 subContext.dismount();
                 registerPartial(stateId, renderToHtml(value, subContext), new Set(connectionMap.keys()));
@@ -164,8 +163,11 @@ async function renderToHtml(item: Node | Node[], context: ServerContext): Promis
     return escapeHtml(String(item));
 }
 
-export async function renderPage(layout: string, component: any, context: ServerContext): Promise<string> {
+export async function renderPage(layout: string, component: any, context: ServerContext): Promise<string | Response> {
     const result = await component.default({}, context);
+    if (result instanceof Response) {
+        return result;
+    }
     const html = await renderToHtml(result, context);
     const cid = context.connection.get('_cid');
     return layout

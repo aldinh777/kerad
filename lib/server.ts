@@ -46,5 +46,5 @@ export function startServer() {
     });
     ws.server = server;
 
-    console.log(`http server running at http://${server.hostname}:${server.port}`);
+    console.log(`http & websocket server running at http://${server.hostname}:${server.port}`);
 }
