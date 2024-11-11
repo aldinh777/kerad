@@ -1,5 +1,5 @@
 import type { Component } from '@aldinh777/kerad-jsx';
-import { Context } from '@aldinh777/kerad-core/context.ts';
+import { Context } from '@aldinh777/kerad-core/common.ts';
 import { destroyElements, renderDom, select, selectAll, setProperty, text } from './dom.ts';
 
 interface BindData {
@@ -19,6 +19,7 @@ const TRIGGER_ENDPOINT = '/kerad/trigger';
 const SUBMIT_ENDPOINT = '/kerad/submit';
 
 const stateBindings = new Map<string, BindData[]>();
+const styleBindings = new Map<string, BindData[]>();
 const elementBindings = new Map<string, ElementBorderData[]>();
 const listBindings = new Map<string, ListElementData[]>();
 
@@ -40,6 +41,21 @@ function setStateBinding(stateId: string, elem: any, prop: string) {
         removeFromArray(bindings, item);
         if (!bindings.length) {
             stateBindings.delete(stateId);
+        }
+    };
+}
+
+function setStyleBinding(stateId: string, elem: any, prop: string) {
+    if (!styleBindings.has(stateId)) {
+        styleBindings.set(stateId, []);
+    }
+    const bindings = styleBindings.get(stateId)!;
+    const item = { elem, prop };
+    bindings.push(item);
+    return () => {
+        removeFromArray(bindings, item);
+        if (!bindings.length) {
+            styleBindings.delete(stateId);
         }
     };
 }
@@ -109,6 +125,14 @@ function bindState(node: HTMLElement | Document, context: Context) {
             context.onMount(() => setStateBinding(stateId, elem, prop));
         }
         elem.removeAttribute('kerad-p');
+    }
+    for (const elem of selectAll('[kerad-x]', node)) {
+        const attribs = elem.getAttribute('kerad-x')!;
+        for (const propPair of attribs.split(' ')) {
+            const [prop, stateId] = propPair.split(':');
+            context.onMount(() => setStyleBinding(stateId, elem, prop));
+        }
+        elem.removeAttribute('kerad-x');
     }
     let stateElement;
     while ((stateElement = select('kerad[e]', node))) {
@@ -207,9 +231,13 @@ export function bindRecursive(node: HTMLElement | Document, context: Context = n
 }
 
 export function updateState(stateId: string, value: string) {
-    const bindings = stateBindings.get(stateId);
-    for (const { elem, prop } of bindings || []) {
+    const props = stateBindings.get(stateId);
+    for (const { elem, prop } of props || []) {
         setProperty(elem, prop, value);
+    }
+    const styles = styleBindings.get(stateId);
+    for (const { elem, prop } of styles || []) {
+        (elem.style as any)[prop] = value;
     }
 }
 

@@ -1,5 +1,5 @@
 import type { Props, Node } from '@aldinh777/kerad-jsx';
-import { Context } from '@aldinh777/kerad-core/context.ts';
+import { Context } from '@aldinh777/kerad-core/common.ts';
 
 interface StoredItem {
     itemStart: Text;

@@ -2,7 +2,7 @@ import type { Context as HonoContext } from '@hono/hono';
 import type { State } from '@aldinh777/reactive';
 import type { WatchableList } from '@aldinh777/reactive/watchable';
 import type { Node } from '@aldinh777/kerad-jsx';
-import { Context } from './context.ts';
+import { Context } from './common.ts';
 
 const randomString = (length: number = 1) => {
     let result = '';

@@ -73,8 +73,8 @@ function isReactive(state: any): state is State {
     return typeof state === 'function' && 'onChange' in state;
 }
 
-function escapeHtml(html: string) {
-    return html
+function escapeHtml(html: any) {
+    return String(html)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
@@ -85,6 +85,7 @@ function escapeHtml(html: string) {
 function renderProps(props: Props, context: ServerContext) {
     const reactiveProps: [prop: string, stateId: string][] = [];
     const eventsProps: [event: string, handlerId: string][] = [];
+    const reactiveStylesProps: [prop: string, stateId: string][] = [];
     let strProps = '';
     for (const prop in props) {
         const value = props[prop];
@@ -99,6 +100,19 @@ function renderProps(props: Props, context: ServerContext) {
             if (val !== false) {
                 strProps += ` ${prop}="${escapeHtml(val)}"`;
             }
+        } else if (prop === 'style' && typeof value === 'object') {
+            const styles: string[] = [];
+            for (const key in value) {
+                const kebabKey = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+                const val = value[key];
+                if (isReactive(val)) {
+                    reactiveStylesProps.push([kebabKey, registerState(val, context)]);
+                    styles.push(`${kebabKey}:${val()}`);
+                } else {
+                    styles.push(`${kebabKey}:${val}`);
+                }
+            }
+            strProps += ` style="${styles.join(';')}"`;
         } else {
             if (value !== false) {
                 strProps += ` ${prop}="${escapeHtml(value)}"`;
@@ -110,6 +124,9 @@ function renderProps(props: Props, context: ServerContext) {
     }
     if (eventsProps.length) {
         strProps += ` kerad-t="${eventsProps.map((t) => t.join(':')).join(' ')}"`;
+    }
+    if (reactiveStylesProps.length) {
+        strProps += ` kerad-x="${reactiveStylesProps.map((s) => s.join(':')).join(' ')}"`;
     }
     return strProps;
 }
@@ -128,7 +145,7 @@ async function renderToHtml(item: Node | Node[], context: ServerContext): Promis
                 const subContext = getSubContext(item)!;
                 return `<kerad e="${stateId}">${await renderToHtml(val, subContext)}</kerad>`;
             } else {
-                return `<kerad s="${stateId}">${escapeHtml(String(val))}</kerad>`;
+                return `<kerad s="${stateId}">${escapeHtml(val)}</kerad>`;
             }
         } else if ('onUpdate' in item && 'onInsert' in item && 'onDelete' in item) {
             const listId = registerList(item, context);
@@ -160,7 +177,7 @@ async function renderToHtml(item: Node | Node[], context: ServerContext): Promis
             return await renderToHtml(await tag(props, context), context);
         }
     }
-    return escapeHtml(String(item));
+    return escapeHtml(item);
 }
 
 export async function renderPage(layout: string, component: any, context: ServerContext): Promise<string | Response> {
