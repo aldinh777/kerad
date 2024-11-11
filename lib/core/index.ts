@@ -3,4 +3,5 @@ export * from './connection.ts';
 export * from './events.ts';
 export * from './partial.ts';
 export * from './reactive.ts';
+export * from './class-list.ts';
 export * from './utils.ts';

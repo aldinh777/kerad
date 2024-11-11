@@ -15,6 +15,9 @@ export default function Style() {
             <div>
                 <button on:click={() => size(size() + 1)}>UP SIZE: {size}px</button>
             </div>
+            <div>
+                <button on:click={() => x.toggle('red')}>toggle</button>
+            </div>
         </div>
     );
 }

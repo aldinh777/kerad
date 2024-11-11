@@ -2,6 +2,7 @@ import type { ServerContext } from '@aldinh777/kerad-core';
 import type { Node, Props } from '@aldinh777/kerad-jsx';
 import type { State } from '@aldinh777/reactive';
 import {
+    ClassList,
     getListItem,
     getSubContext,
     registerFormHandler,
@@ -9,10 +10,12 @@ import {
     registerPartial,
     registerState,
     registerTriggerHandler,
+    registerClassList,
     setRegistryHandler,
     unregisterPartial
 } from '@aldinh777/kerad-core';
 import {
+    pushClassListUpdate,
     pushElementChange,
     pushListDelete,
     pushListInsert,
@@ -66,6 +69,11 @@ setRegistryHandler({
                 context.dismount();
             }
         };
+    },
+    classList(classList, classListId, connections) {
+        return classList.onUpdate((newName, oldName) => {
+            pushClassListUpdate(connections.keys(), classListId, newName, oldName);
+        });
     }
 });
 
@@ -85,7 +93,7 @@ function escapeHtml(html: any) {
 function renderProps(props: Props, context: ServerContext) {
     const reactiveProps: [prop: string, stateId: string][] = [];
     const eventsProps: [event: string, handlerId: string][] = [];
-    const reactiveStylesProps: [prop: string, stateId: string][] = [];
+    const reactiveStylesProps: [style: string, stateId: string][] = [];
     let strProps = '';
     for (const prop in props) {
         const value = props[prop];
@@ -113,6 +121,8 @@ function renderProps(props: Props, context: ServerContext) {
                 }
             }
             strProps += ` style="${styles.join(';')}"`;
+        } else if (prop === 'class' && value instanceof ClassList) {
+            strProps += ` kerad-cl="${registerClassList(value, context)}" class="${value.toString()}"`;
         } else {
             if (value !== false) {
                 strProps += ` ${prop}="${escapeHtml(value)}"`;

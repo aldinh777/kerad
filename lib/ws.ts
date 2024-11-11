@@ -67,6 +67,10 @@ export function pushListDelete(topics: Iterable<string>, listId: string, itemId:
     publish(topics, 'd', listId, itemId);
 }
 
+export function pushClassListUpdate(topics: Iterable<string>, classListId: string, oldName: string, newName: string) {
+    publish(topics, 'cl', classListId, oldName, newName);
+}
+
 export function pushRedirect(topic: string, url: string) {
     publish([topic], 'r', url);
 }

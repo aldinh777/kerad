@@ -20,6 +20,7 @@ const SUBMIT_ENDPOINT = '/kerad/submit';
 
 const stateBindings = new Map<string, BindData[]>();
 const styleBindings = new Map<string, BindData[]>();
+const classListElements = new Map<string, HTMLElement[]>();
 const elementBindings = new Map<string, ElementBorderData[]>();
 const listBindings = new Map<string, ListElementData[]>();
 
@@ -56,6 +57,20 @@ function setStyleBinding(stateId: string, elem: any, prop: string) {
         removeFromArray(bindings, item);
         if (!bindings.length) {
             styleBindings.delete(stateId);
+        }
+    };
+}
+
+function setClassListBinding(classListId: string, elem: HTMLElement) {
+    if (!classListElements.has(classListId)) {
+        classListElements.set(classListId, []);
+    }
+    const list = classListElements.get(classListId)!;
+    list.push(elem);
+    return () => {
+        removeFromArray(list, elem);
+        if (!list.length) {
+            classListElements.delete(classListId);
         }
     };
 }
@@ -127,12 +142,17 @@ function bindState(node: HTMLElement | Document, context: Context) {
         elem.removeAttribute('kerad-p');
     }
     for (const elem of selectAll('[kerad-x]', node)) {
-        const attribs = elem.getAttribute('kerad-x')!;
-        for (const propPair of attribs.split(' ')) {
-            const [prop, stateId] = propPair.split(':');
-            context.onMount(() => setStyleBinding(stateId, elem, prop));
+        const styles = elem.getAttribute('kerad-x')!;
+        for (const stylePair of styles.split(' ')) {
+            const [style, stateId] = stylePair.split(':');
+            context.onMount(() => setStyleBinding(stateId, elem, style));
         }
         elem.removeAttribute('kerad-x');
+    }
+    for (const elem of selectAll('[kerad-cl]', node)) {
+        const classListId = elem.getAttribute('kerad-cl')!;
+        context.onMount(() => setClassListBinding(classListId, elem));
+        elem.removeAttribute('kerad-cl');
     }
     let stateElement;
     while ((stateElement = select('kerad[e]', node))) {
@@ -238,6 +258,19 @@ export function updateState(stateId: string, value: string) {
     const styles = styleBindings.get(stateId);
     for (const { elem, prop } of styles || []) {
         (elem.style as any)[prop] = value;
+    }
+}
+
+export function updateClassList(classListId: string, oldName: string, newName: string) {
+    const elems = classListElements.get(classListId);
+    for (const elem of elems || []) {
+        if (!newName) {
+            elem.classList.remove(oldName);
+        } else if (!oldName) {
+            elem.classList.add(newName);
+        } else {
+            elem.classList.replace(oldName, newName);
+        }
     }
 }
 

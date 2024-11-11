@@ -2,7 +2,7 @@ import type { Context as HonoContext } from '@hono/hono';
 import type { State } from '@aldinh777/reactive';
 import type { WatchableList } from '@aldinh777/reactive/watchable';
 import type { Node } from '@aldinh777/kerad-jsx';
-import { Context } from './common.ts';
+import { ClassList, Context } from './common.ts';
 
 const randomString = (length: number = 1) => {
     let result = '';
@@ -51,6 +51,7 @@ interface UniqueHandlers {
         subContext?: ServerContext
     ) => () => void;
     list?: (mappedList: WatchableList<StoredItem>, listId: string, connections: Map<string, Set<string>>) => () => void;
+    classList?: (classList: ClassList, classListId: string, connections: Map<string, Set<string>>) => () => void;
 }
 
 export const uniqueHandlers: UniqueHandlers = {};
@@ -58,6 +59,7 @@ export const uniqueHandlers: UniqueHandlers = {};
 export function setRegistryHandler(handler: UniqueHandlers) {
     uniqueHandlers.state = handler.state;
     uniqueHandlers.list = handler.list;
+    uniqueHandlers.classList = handler.classList;
 }
 
 export function createIdGenerator(): IdGenerator {
