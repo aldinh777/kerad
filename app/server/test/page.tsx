@@ -1,7 +1,12 @@
+import type { ServerContext } from '@aldinh777/kerad-core';
 import { state, computed } from '@aldinh777/reactive';
 import { list } from '@aldinh777/reactive/list';
 
-export default function TestPage() {
+export default function TestPage(_: any, context: ServerContext) {
+    const { error } = context.connection.req.query();
+    if (error === 'true') {
+        throw new Error('Rendering Error');
+    }
     const rawHTML = state('<h1 style="color: orange;">this is raw html</h1>');
     const rawProp = state('" onClick="alert(\'xss injection\')"');
     const isOpen = state(true);
@@ -42,6 +47,13 @@ export default function TestPage() {
             </div>
             <div>
                 <button on:click={() => isOpen(!isOpen())}>Toggle Layout</button>
+                <button
+                    on:click={() => {
+                        throw new Error('Click Error');
+                    }}
+                >
+                    Cause Error
+                </button>
             </div>
             {rawHTML}
             <button on:click={() => ll.pop()}>pop</button>
