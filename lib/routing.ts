@@ -50,7 +50,7 @@ export async function handlePartial(partialId: string, connectionId: string) {
 }
 
 export async function handleTrigger(triggerId: string, value: Promise<string>) {
-    const { result, error } = triggerHandler(triggerId, await value);
+    const { result, error } = await triggerHandler(triggerId, await value);
     if (error) {
         console.error(error);
     }
@@ -58,7 +58,7 @@ export async function handleTrigger(triggerId: string, value: Promise<string>) {
 }
 
 export async function handleSubmit(formId: string, formData: Promise<FormData>) {
-    const { result, error } = submitForm(formId, await formData);
+    const { result, error } = await submitForm(formId, await formData);
     if (error) {
         console.error(error);
     }

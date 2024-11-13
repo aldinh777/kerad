@@ -24,12 +24,12 @@ export function registerTriggerHandler(handler: (value?: string) => any, context
     });
 }
 
-export function triggerHandler(handlerId: string, value: string) {
+export async function triggerHandler(handlerId: string, value: string) {
     if (!triggerMap.has(handlerId)) {
         return { result: 'not found' };
     }
     try {
-        triggerMap.get(handlerId)!(value);
+        await triggerMap.get(handlerId)!(value);
         return { result: 'ok' };
     } catch (error) {
         return { result: 'error', error };
@@ -59,12 +59,12 @@ export function registerFormHandler(formHandler: (formData: FormData) => any, co
     });
 }
 
-export function submitForm(formId: string, formData: FormData) {
+export async function submitForm(formId: string, formData: FormData) {
     if (!formSubmitMap.has(formId)) {
         return { result: 'not found' };
     }
     try {
-        formSubmitMap.get(formId)!(formData);
+        await formSubmitMap.get(formId)!(formData);
         return { result: 'ok' };
     } catch (error) {
         return { result: 'error', error };
