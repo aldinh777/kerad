@@ -1,11 +1,35 @@
 import type { ServerContext } from '@aldinh777/kerad-core';
 import { createIdGenerator } from '@aldinh777/kerad-core';
-import { login } from '@aldinh777/kerad-db/repositories/user.ts';
+import { password } from 'bun';
+import { state } from '@aldinh777/reactive';
+import { db } from '@aldinh777/kerad-db';
 
 const sessionIdGenerator = createIdGenerator();
 const cookieSessions = new Map<string, SessionData>();
 
+type UserData = Awaited<ReturnType<typeof login>>;
+
+async function login(name: string, pass: string) {
+    const user = await db.query.users.findFirst({
+        columns: { id: true, username: true, password: true },
+        where: (users, { eq }) => eq(users.username, name),
+        with: { userRoles: { with: { role: true } } }
+    });
+    if (!user) {
+        return null;
+    }
+    if (password.verifySync(pass, user.password || '')) {
+        return {
+            id: user.id,
+            username: user.username,
+            roles: user.userRoles.map((userRole) => userRole.role!.name!)
+        };
+    }
+    return null;
+}
+
 export class SessionData extends Map {
+    userState = state<UserData>(null);
     getOrDefault<T>(key: any, defaultValue: T): T {
         if (this.has(key)) {
             return this.get(key);
@@ -13,18 +37,15 @@ export class SessionData extends Map {
         this.set(key, defaultValue);
         return defaultValue;
     }
-    getCurrentUser() {
-        return this.getOrDefault<Awaited<ReturnType<typeof login>> | undefined>('_user', undefined);
-    }
     async login(username: string, password: string) {
         const user = await login(username, password);
         if (user) {
-            this.set('_user', user);
+            this.userState(user);
         }
         return user;
     }
     logout() {
-        this.delete('_user');
+        this.userState(null);
     }
 }
 
