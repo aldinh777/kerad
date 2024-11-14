@@ -1,0 +1,8 @@
+{
+    "name": "@aldinh777/kerad-db",
+    "description": "shared db library for local kerad",
+    "version": "0.0.1",
+    "main": "index.ts",
+    "type": "module",
+    "author": "aldinh777"
+}

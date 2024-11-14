@@ -3,6 +3,7 @@ import type { State } from '@aldinh777/reactive';
 import type { WatchableList } from '@aldinh777/reactive/watchable';
 import type { Node } from '@aldinh777/kerad-jsx';
 import { ClassList, Context } from './common.ts';
+import { sessionByCookie } from './session.ts';
 
 const randomString = (length: number = 1) => {
     let result = '';
@@ -18,11 +19,13 @@ export class ServerContext extends Context {
     id: string;
     params: Record<string, string | undefined>;
     connection: HonoContext;
+    session: ReturnType<typeof sessionByCookie>;
     constructor(id: string, connection: HonoContext, params: Record<string, string | undefined> = {}) {
         super();
         this.id = id;
         this.params = params;
         this.connection = connection;
+        this.session = sessionByCookie(this);
     }
 }
 
@@ -62,11 +65,11 @@ export function setRegistryHandler(handler: UniqueHandlers) {
     uniqueHandlers.classList = handler.classList;
 }
 
-export function createIdGenerator(): IdGenerator {
+export function createIdGenerator(defaultSize: number = 4): IdGenerator {
     const set = new Set<string>();
     return {
         next() {
-            let id = randomString(4);
+            let id = randomString(defaultSize);
             while (set.has(id)) {
                 id += randomString();
             }

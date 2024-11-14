@@ -1,34 +1,34 @@
 // execute at first
 export default function middleware() {
-    // console.log('default');
+    // put guard code here
 }
 
 // then match the available common methods
 export function get() {
-    // console.log('get');
+    // handle GET requests
 }
 export function post() {
-    // console.log('post');
+    // handle POST requests
 }
 export function put() {
-    // console.log('put');
+    // handle PUT requests
 }
 export function del() {
-    // console.log('delete');
+    // handle DELETE requests
 }
 export function patch() {
-    // console.log('patch');
+    // handle PATCH requests
 }
 
 // finally the last handler
 export function all() {
-    // console.log('all');
+    // handle all requests
 }
 
 // if said things happen
 export function notFound() {
-    // console.log('not found');
+    // handle 404 not found
 }
 export function error() {
-    // console.log('error');
+    // handle error responses
 }
