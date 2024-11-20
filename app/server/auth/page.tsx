@@ -29,11 +29,11 @@ export default function (_: any, context: ServerContext) {
             <form on:submit={handleLogin}>
                 <div style={{ color: color }}>{success}</div>
                 <div>
-                    <label htmlFor="username">Username</label>
+                    <label for="username">Username</label>
                     <input type="text" name="username" id="username" />
                 </div>
                 <div>
-                    <label htmlFor="password">Password</label>
+                    <label for="password">Password</label>
                     <input type="password" name="password" id="password" />
                 </div>
                 <div>

@@ -14,7 +14,7 @@ export default function MainPage(_: any) {
     return (
         <>
             <div>
-                <kerad-client src="/App.tsx">Component is Loading...</kerad-client>
+                <clientside src="/App.tsx">Component is Loading...</clientside>
             </div>
             <Counter counter={globalCounter} title="Global Counter" />
             <Counter counter={counter} title="Local Counter" />
@@ -37,7 +37,7 @@ export default function MainPage(_: any) {
                         globalTodos.push(next as string);
                     }
                 }}
-                afterSubmit="reset"
+                aftersubmit="reset"
             >
                 <input type="text" name="todo" />
                 <button type="submit">submit</button>

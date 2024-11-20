@@ -112,7 +112,7 @@ function setListBinding(
 }
 
 function bindClientComponent(node: HTMLElement | Document, context: Context) {
-    for (const elem of selectAll('kerad-client[src]', node)) {
+    for (const elem of selectAll('clientside[src]', node)) {
         const src = elem.getAttribute('src');
         if (!src) {
             continue;
@@ -223,9 +223,9 @@ function bindForm(node: HTMLElement | Document) {
             const form = ev.currentTarget as HTMLFormElement;
             const formData: any = new FormData(form);
             fetch(`${SUBMIT_ENDPOINT}?id=${formId}`, { method: 'post', body: formData });
-            const afterSubmit = form.getAttribute('afterSubmit');
+            const aftersubmit = form.getAttribute('aftersubmit');
             for (const input of selectAll<HTMLInputElement>('[name]', form)) {
-                if (afterSubmit === 'reset' || input.getAttribute('afterSubmit') === 'reset') {
+                if (aftersubmit === 'reset' || input.getAttribute('aftersubmit') === 'reset') {
                     input.value = input.getAttribute('resetValue') || '';
                 }
             }
