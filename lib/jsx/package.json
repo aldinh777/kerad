@@ -1,7 +1,7 @@
 {
   "name": "@aldinh777/kerad-jsx",
   "description": "simple jsx implementation to be used for the kerad framework",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "main": "jsx-runtime.ts",
   "type": "module",
   "author": "aldinh777"
