@@ -1,53 +1,8 @@
 import type { ServerContext } from '@aldinh777/kerad-core';
 import { createIdGenerator } from '@aldinh777/kerad-core';
-import { password } from 'bun';
-import { state } from '@aldinh777/reactive';
-import { db } from '@aldinh777/kerad-db';
 
 const sessionIdGenerator = createIdGenerator();
-const cookieSessions = new Map<string, SessionData>();
-
-type UserData = Awaited<ReturnType<typeof login>>;
-
-async function login(name: string, pass: string) {
-    const user = await db.query.users.findFirst({
-        columns: { id: true, username: true, password: true },
-        where: (users, { eq }) => eq(users.username, name),
-        with: { userRoles: { with: { role: true } } }
-    });
-    if (!user) {
-        return null;
-    }
-    if (password.verifySync(pass, user.password || '')) {
-        return {
-            id: user.id,
-            username: user.username,
-            roles: user.userRoles.map((userRole) => userRole.role!.name!)
-        };
-    }
-    return null;
-}
-
-export class SessionData extends Map {
-    userState = state<UserData>(null);
-    getOrDefault<T>(key: any, defaultValue: T): T {
-        if (this.has(key)) {
-            return this.get(key);
-        }
-        this.set(key, defaultValue);
-        return defaultValue;
-    }
-    async login(username: string, password: string) {
-        const user = await login(username, password);
-        if (user) {
-            this.userState(user);
-        }
-        return user;
-    }
-    logout() {
-        this.userState(null);
-    }
-}
+const cookieSessions = new Map<string, Map<string, any>>();
 
 const COOKIE_NAME = 'KERAD_SESSION_ID';
 
@@ -75,7 +30,7 @@ export function sessionByCookie(context: ServerContext) {
     }
     const sessionId = sessionIdGenerator.next();
     context.connection.header('Set-Cookie', `${COOKIE_NAME}=${sessionId}`);
-    sessionData = new SessionData();
+    sessionData = new Map();
     cookieSessions.set(sessionId, sessionData);
     return sessionData;
 }

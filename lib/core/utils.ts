@@ -1,6 +1,6 @@
 import type { Context as HonoContext } from '@hono/hono';
 import type { State } from '@aldinh777/reactive';
-import type { WatchableList } from '@aldinh777/reactive/watchable';
+import type { WatchableList } from '@aldinh777/reactive/list/utils';
 import type { Node } from '@aldinh777/kerad-jsx';
 import { ClassList, Context } from './common.ts';
 import { sessionByCookie } from './session.ts';

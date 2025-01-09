@@ -4,12 +4,12 @@ import type { State } from '@aldinh777/reactive';
 import type { GlobalEvents } from './events';
 
 type SafeLiterals<T> = T | (string & {});
-export type StateAttributes<T = {}> = { [K in keyof T]: SafeLiterals<T[K]> | State<T[K]> };
+export type StateAttributes<T = {}> = { [K in keyof T]: SafeLiterals<T[K]> | State<Extract<T[K], string>> };
 export type HtmlAttributesNoEvents<T = {}> = Partial<StateAttributes<T> & GlobalAttribute>;
 export type HtmlAttributes<T = {}> = HtmlAttributesNoEvents<T & GlobalEvents>;
 
 export type GlobalAttribute = StateAttributes<{
-    accesskey: string | State<string>;
+    accesskey: string;
     class: string | ClassList;
     contenteditable: string;
     dir: string;

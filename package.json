@@ -1,23 +1,18 @@
 {
   "name": "@aldinh777/kerad",
   "version": "0.1.0",
-  "description": "Kerad Framework",
+  "description": "reactive based framework to handle server client coupled rendering",
   "scripts": {
     "dev": "bun --watch ./main.ts"
   },
   "devDependencies": {
-    "@types/bun": "^1.1.12",
-    "drizzle-kit": "^0.26.2"
+    "@types/bun": "^1.1.12"
   },
   "dependencies": {
     "@aldinh777/kerad-core": "file:lib/core",
-    "@aldinh777/kerad-db": "file:db",
     "@aldinh777/kerad-dom": "file:lib/dom",
     "@aldinh777/kerad-jsx": "file:lib/jsx",
-    "@aldinh777/reactive": "npm:@jsr/aldinh777__reactive",
-    "@hono/hono": "npm:@jsr/hono__hono",
-    "drizzle-orm": "^0.35.3",
-    "mysql2": "^3.11.3",
-    "zod": "^3.23.8"
+    "@aldinh777/reactive": "^0.40.1",
+    "@hono/hono": "^4.6.16"
   }
 }
