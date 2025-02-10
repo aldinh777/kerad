@@ -1,5 +1,5 @@
-import type { Component } from '@aldinh777/kerad-jsx';
-import { Context } from '@aldinh777/kerad-core/common.ts';
+import type { Component } from '@aldinh777/kerad/jsx';
+import { Context } from '@aldinh777/kerad/common';
 import { destroyElements, renderDom, select, selectAll, setProperty, text } from './dom.ts';
 
 interface BindData {

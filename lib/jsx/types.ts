@@ -1,4 +1,4 @@
-import { ClassList } from '@aldinh777/kerad-core';
+import { ClassList } from '@aldinh777/kerad';
 import type { CSSProperties } from './styles';
 import type { State } from '@aldinh777/reactive';
 import type { GlobalEvents } from './events';

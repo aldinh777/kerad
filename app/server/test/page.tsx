@@ -3,7 +3,7 @@ import { state, computed } from '@aldinh777/reactive';
 import { list } from '@aldinh777/reactive/list';
 
 export default function TestPage(_: any, context: ServerContext) {
-    const { error } = context.connection.req.query();
+    const error = context.url.searchParams.get('error');
     if (error === 'true') {
         throw new Error('Rendering Error');
     }

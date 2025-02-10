@@ -1,5 +1,5 @@
-import type { ServerContext } from '@aldinh777/kerad-core';
-import { createIdGenerator } from '@aldinh777/kerad-core';
+import type { ServerContext } from './utils';
+import { createIdGenerator } from './utils';
 
 const sessionIdGenerator = createIdGenerator();
 const cookieSessions = new Map<string, Map<string, any>>();
@@ -7,7 +7,7 @@ const cookieSessions = new Map<string, Map<string, any>>();
 const COOKIE_NAME = 'KERAD_SESSION_ID';
 
 function findSessionCookie<T>(context: ServerContext, handler: (cookie: string) => T) {
-    const cookiesText = context.connection.req.header('Cookie');
+    const cookiesText = context.req.headers.get('Cookie');
     if (cookiesText) {
         const cookies = cookiesText
             .split(';')
@@ -29,7 +29,7 @@ export function sessionByCookie(context: ServerContext) {
         return sessionData;
     }
     const sessionId = sessionIdGenerator.next();
-    context.connection.header('Set-Cookie', `${COOKIE_NAME}=${sessionId}`);
+    context.res.headers['Set-Cookie'] = `${COOKIE_NAME}=${sessionId}`;
     sessionData = new Map();
     cookieSessions.set(sessionId, sessionData);
     return sessionData;

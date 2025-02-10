@@ -1,8 +1,0 @@
-{
-  "name": "@aldinh777/kerad-core",
-  "description": "shared core utils for kerad",
-  "version": "0.0.1",
-  "main": "index.ts",
-  "type": "module",
-  "author": "aldinh777"
-}

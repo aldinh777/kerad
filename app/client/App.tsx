@@ -1,4 +1,4 @@
-import type { Context } from '@aldinh777/kerad-core';
+import type { Context } from '@aldinh777/kerad';
 import { state, computed } from '@aldinh777/reactive';
 import Counter from '../components/Counter';
 

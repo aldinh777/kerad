@@ -1,47 +1,52 @@
 import { serve } from 'bun';
-import { Hono } from '@hono/hono';
-import { serveStatic } from '@hono/hono/bun';
-import { handlePartial, handleTrigger, handleSubmit, routeUrl } from './routing.ts';
+import { handlePartial, handleTrigger, handleSubmit, routeUrl, handleStaticFile } from './routing.ts';
 import { ws } from './ws.ts';
-
-const app = new Hono();
 
 const PORT = process.env['HTTP_PORT'] || 3000;
 
-app.get('/kerad/partial', (c) => {
-    const partialId = c.req.query('id') || '';
-    const connectionId = (c.req.header('Connection-ID') as string) || '';
-    return handlePartial(partialId, connectionId);
-});
-
-app.post('/kerad/trigger', (c) => {
-    const triggerId = c.req.query('id') || '';
-    const body = c.req.text();
-    return handleTrigger(triggerId, body);
-});
-
-app.post('/kerad/submit', (c) => {
-    const formId = c.req.query('id') || '';
-    const contentType = c.req.header('Content-Type')?.split(';')[0];
-    if (!(contentType === 'multipart/form-data')) {
-        return new Response('invalid', { status: 400 });
-    }
-    const formData = c.req.formData();
-    return handleSubmit(formId, formData);
-});
-
-app.use(serveStatic({ root: './build' }));
-app.use(serveStatic({ root: './app/public' }));
-
-app.use(routeUrl);
-
 export function startServer() {
     const server = serve({
-        async fetch(req, server) {
-            const res = ws.fetch(req, server);
-            return res || (await app.fetch(req, server));
-        },
         port: PORT,
+        async fetch(req) {
+            const url = new URL(req.url);
+            const { pathname, searchParams } = url;
+            switch (pathname) {
+                case '/connect':
+                    const cid = url.searchParams.get('cid');
+                    if (!cid) {
+                        return new Response('invalid', { status: 400 });
+                    }
+                    const upgrade = server.upgrade(req, { data: { cid } });
+                    if (upgrade) {
+                        return new Response(null, { status: 101 });
+                    } else {
+                        return new Response('upgrade failed :(', { status: 500 });
+                    }
+                case '/kerad/partial':
+                    const partialId = searchParams.get('id')!;
+                    const connectionId = req.headers.get('Connection-ID')!;
+                    return handlePartial(partialId, connectionId);
+                case '/kerad/trigger':
+                    if (req.method !== 'POST') {
+                        return new Response('not allowed', { status: 405 });
+                    }
+                    const triggerId = searchParams.get('id')!;
+                    return handleTrigger(triggerId, req.text());
+                case '/kerad/submit':
+                    const formId = searchParams.get('id')!;
+                    const [contentType] = req.headers.get('Content-Type')?.split(';') || [];
+                    if (!(req.method === 'POST' && contentType === 'multipart/form-data')) {
+                        return new Response('invalid', { status: 400 });
+                    }
+                    return handleSubmit(formId, req.formData());
+                default:
+                    const fileResponse = await handleStaticFile(pathname);
+                    if (fileResponse) {
+                        return fileResponse;
+                    }
+                    return routeUrl(req, url);
+            }
+        },
         websocket: ws.socketHandler
     });
     ws.server = server;

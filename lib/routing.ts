@@ -1,9 +1,8 @@
-import type { Context } from '@hono/hono';
-import type { ServerContext } from '@aldinh777/kerad-core';
+import type { ServerContext } from '@aldinh777/kerad';
 import { CryptoHasher, file } from 'bun';
 import { join } from 'path';
 import { readdir } from 'fs/promises';
-import { registerConnection, renderPartial, submitForm, triggerHandler } from '@aldinh777/kerad-core';
+import { registerConnection, renderPartial, submitForm, triggerHandler } from '@aldinh777/kerad';
 import { renderPage } from './renderer.ts';
 
 interface MiddlewareRules {
@@ -67,7 +66,7 @@ export async function handleSubmit(formId: string, formData: Promise<FormData>) 
 
 export async function handleStaticFile(pathname: string) {
     const filename = pathname === '/' ? '/index.html' : pathname;
-    const staticFile = file(join(import.meta.dir, '../app/static', filename));
+    const staticFile = file(join(import.meta.dir, '../app/public', filename));
     if (await staticFile.exists()) {
         return new Response(staticFile);
     }
@@ -77,13 +76,13 @@ export async function handleStaticFile(pathname: string) {
     }
 }
 
-export async function routeUrl(connection: Context): Promise<Response> {
-    const path = connection.req.path;
+export async function routeUrl(req: Request, url: URL): Promise<Response> {
+    const path = url.pathname;
     const pathname = path.endsWith('/') ? path : path + '/';
     const layoutStack: string[] = [];
-    const context = registerConnection(connection);
+    const context = registerConnection(req, url);
     let dir = ROUTE_PATH;
-    let url = '';
+    let urlMatch = '';
     let notFoundPath = '';
     let errorPath = '';
     let notFoundHandler: (() => Promise<Response | undefined>) | undefined;
@@ -92,11 +91,11 @@ export async function routeUrl(connection: Context): Promise<Response> {
     for (let i = 0; i < pathname.length; i++) {
         const c = pathname[i];
         if (c !== '/') {
-            url += c;
+            urlMatch += c;
             continue;
         }
 
-        let nextDir = join(dir, url);
+        let nextDir = join(dir, urlMatch);
         let dirItems: string[];
 
         try {
@@ -110,11 +109,11 @@ export async function routeUrl(connection: Context): Promise<Response> {
                 if (paramDir.startsWith('[...')) {
                     const paramName = paramDir.slice(4, -1);
                     const restOfUrl = pathname.slice(i, -1);
-                    context.params[paramName] = decodeURI(url + restOfUrl);
+                    context.params[paramName] = decodeURI(urlMatch + restOfUrl);
                     i = pathname.length;
                 } else {
                     const paramName = paramDir.slice(1, -1);
-                    context.params[paramName] = decodeURI(url);
+                    context.params[paramName] = decodeURI(urlMatch);
                 }
             } else {
                 const res = await notFoundHandler?.();
@@ -130,7 +129,7 @@ export async function routeUrl(connection: Context): Promise<Response> {
             }
         }
 
-        url = '';
+        urlMatch = '';
         dir = nextDir;
 
         if (dirItems.includes('layout.html')) {
@@ -148,7 +147,7 @@ export async function routeUrl(connection: Context): Promise<Response> {
         if (dirItems.includes('rules.ts')) {
             const rulesFile = join(dir, 'rules.ts');
             const rules: MiddlewareRules = await md5HashImport(rulesFile);
-            const method = connection.req.method;
+            const method = req.method;
             if (rules.notFound) {
                 notFoundHandler = rules.notFound;
             }
@@ -204,7 +203,7 @@ export async function routeUrl(connection: Context): Promise<Response> {
             if (renderOutput instanceof Response) {
                 return renderOutput;
             }
-            return context.connection.html(renderOutput);
+            return new Response(renderOutput, { status: context.res.status, headers: context.res.headers as HeadersInit });
         } catch (err) {
             const res = await errorHandler?.();
             if (res instanceof Response) {
@@ -214,6 +213,7 @@ export async function routeUrl(connection: Context): Promise<Response> {
                 const errorPage = file(errorPath);
                 const page = await errorPage.text().then((html) => {
                     const stackTrace = err instanceof Error ? err.stack : err;
+                    console.error(err);
                     return html.replace('%STACK_TRACE%', String(stackTrace));
                 });
 

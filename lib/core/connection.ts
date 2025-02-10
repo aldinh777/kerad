@@ -1,13 +1,11 @@
-import type { Context } from '@hono/hono';
 import { ServerContext, createIdGenerator } from './utils';
 
 const contextConnectionMap = new Map<string, ServerContext>();
 const connectionIdGenerator = createIdGenerator();
 
-export function registerConnection(connection: Context, params: Record<string, string> = {}) {
+export function registerConnection(req: Request, url: URL, params: Record<string, string> = {}) {
     const contextId = connectionIdGenerator.next();
-    connection.set('_cid', contextId);
-    const context = new ServerContext(contextId, connection, params);
+    const context = new ServerContext(contextId, req, url, params);
     contextConnectionMap.set(contextId, context);
     return context;
 }

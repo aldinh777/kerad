@@ -1,7 +1,6 @@
-import type { Context as HonoContext } from '@hono/hono';
 import type { State } from '@aldinh777/reactive';
-import type { WatchableList } from '@aldinh777/reactive/list/utils';
-import type { Node } from '@aldinh777/kerad-jsx';
+import type { WatchableList } from '@aldinh777/reactive/list-utils';
+import type { Node } from '@aldinh777/kerad/jsx';
 import { ClassList, Context } from './common.ts';
 import { sessionByCookie } from './session.ts';
 
@@ -15,16 +14,24 @@ const randomString = (length: number = 1) => {
     return result;
 };
 
+interface ResponseData {
+    status: number;
+    headers: Record<string, string>;
+}
+
 export class ServerContext extends Context {
     id: string;
+    url: URL;
+    req: Request;
+    res: ResponseData = { status: 200, headers: {} };
     params: Record<string, string | undefined>;
-    connection: HonoContext;
     session: ReturnType<typeof sessionByCookie>;
-    constructor(id: string, connection: HonoContext, params: Record<string, string | undefined> = {}) {
+    constructor(id: string, req: Request, url: URL, params: Record<string, string | undefined> = {}) {
         super();
         this.id = id;
+        this.req = req;
+        this.url = url;
         this.params = params;
-        this.connection = connection;
         this.session = sessionByCookie(this);
     }
 }
@@ -92,7 +99,7 @@ export function handleContextData<T>(
         map.set(item, handlers.onCreate());
     }
     const { id, connectionMap, unsubscribe } = map.get(item)!;
-    const cid = context.connection.get('_cid');
+    const cid = context.id;
     if (!connectionMap.has(cid)) {
         connectionMap.set(cid, new Set());
     }

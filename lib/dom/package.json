@@ -1,8 +1,0 @@
-{
-  "name": "@aldinh777/kerad-dom",
-  "description": "client side dom utils for kerad",
-  "version": "0.1.0",
-  "main": "index.ts",
-  "type": "module",
-  "author": "aldinh777"
-}

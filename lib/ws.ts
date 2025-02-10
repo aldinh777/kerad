@@ -1,5 +1,5 @@
 import type { Server, WebSocketHandler } from 'bun';
-import { unregisterConnection } from '@aldinh777/kerad-core';
+import { unregisterConnection } from '@aldinh777/kerad';
 
 interface ConnectionData {
     cid: string;
@@ -7,7 +7,6 @@ interface ConnectionData {
 
 class WebSocketMiddleware {
     server?: Server;
-    handlers = [];
     fetch(req: Request, server: Server) {
         const url = new URL(req.url);
         const cid = url.searchParams.get('cid');

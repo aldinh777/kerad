@@ -20,7 +20,7 @@ export function registerState(state: State, context: ServerContext) {
             const val = state();
             let subContext: ServerContext | undefined;
             if (val instanceof Object) {
-                subContext = new ServerContext(stateId, context.connection, context.params);
+                subContext = new ServerContext(stateId, context.req, context.url, context.params);
                 context.onDismount(() => subContext?.dismount());
             }
             return {
@@ -51,7 +51,7 @@ const listIdGenerator = createIdGenerator();
 
 function createSubContext(parentContext: ServerContext, itemIdGenerator: IdGenerator) {
     const contextId = itemIdGenerator.next();
-    const context = new ServerContext(contextId, parentContext.connection, parentContext.params);
+    const context = new ServerContext(contextId, parentContext.req, parentContext.url, parentContext.params);
     context.onDismount(() => itemIdGenerator.delete(contextId));
     parentContext.onDismount(() => context.dismount());
     return context;

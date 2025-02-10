@@ -5,14 +5,18 @@
   "scripts": {
     "dev": "bun --watch ./main.ts"
   },
+  "exports": {
+    ".": "./lib/core/index.ts",
+    "./common": "./lib/core/common.ts",
+    "./dom": "./lib/dom/index.ts",
+    "./jsx": "./lib/jsx/jsx-runtime.ts",
+    "./jsx/jsx-runtime": "./lib/jsx/jsx-runtime.ts",
+    "./jsx/jsx-dev-runtime": "./lib/jsx/jsx-dev-runtime.ts"
+  },
   "devDependencies": {
-    "@types/bun": "^1.1.12"
+    "@types/bun": "^1.2.2"
   },
   "dependencies": {
-    "@aldinh777/kerad-core": "file:lib/core",
-    "@aldinh777/kerad-dom": "file:lib/dom",
-    "@aldinh777/kerad-jsx": "file:lib/jsx",
-    "@aldinh777/reactive": "^0.40.1",
-    "@hono/hono": "^4.6.16"
+    "@aldinh777/reactive": "github:aldinh777/reactive"
   }
 }

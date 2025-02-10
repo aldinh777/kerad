@@ -1,5 +1,5 @@
-import type { ServerContext } from '@aldinh777/kerad-core';
-import type { Node, Props } from '@aldinh777/kerad-jsx';
+import type { ServerContext } from '@aldinh777/kerad';
+import type { Node, Props } from '@aldinh777/kerad/jsx';
 import type { State } from '@aldinh777/reactive';
 import {
     ClassList,
@@ -13,7 +13,7 @@ import {
     registerClassList,
     setRegistryHandler,
     unregisterPartial
-} from '@aldinh777/kerad-core';
+} from '@aldinh777/kerad';
 import {
     pushClassListUpdate,
     pushElementChange,
@@ -196,9 +196,9 @@ export async function renderPage(layout: string, component: any, context: Server
         return result;
     }
     const html = await renderToHtml(result, context);
-    const cid = context.connection.get('_cid');
+    context.res.headers['Content-Type'] = 'text/html';
     return layout
         .replace('%TITLE%', component.metadata?.title || process.env['APP_TITLE'] || '')
-        .replace('%CID%', cid)
+        .replace('%CID%', context.id)
         .replace('%PAGE%', html);
 }

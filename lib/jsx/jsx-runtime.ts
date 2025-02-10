@@ -1,6 +1,6 @@
-import type { Context } from '@aldinh777/kerad-core';
+import type { Context } from '@aldinh777/kerad';
 import type { State } from '@aldinh777/reactive';
-import type { WatchableList } from '@aldinh777/reactive/list/utils';
+import type { WatchableList } from '@aldinh777/reactive/list-utils';
 import type {
     AnchorRelation,
     FormRelation,
