@@ -1,4 +1,4 @@
-import type { ServerContext } from '@aldinh777/kerad-core';
+import type { ServerContext } from '@aldinh777/kerad';
 import { state, computed } from '@aldinh777/reactive';
 import { list } from '@aldinh777/reactive/list';
 

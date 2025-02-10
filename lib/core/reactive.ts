@@ -1,5 +1,5 @@
 import type { State } from '@aldinh777/reactive';
-import type { WatchableList } from '@aldinh777/reactive/list/utils';
+import type { WatchableList } from '@aldinh777/reactive/list-utils';
 import type { IdGenerator, StoredItem, SubscriptionData } from './utils.ts';
 import { createIdGenerator, handleContextData, ServerContext, uniqueHandlers } from './utils.ts';
 

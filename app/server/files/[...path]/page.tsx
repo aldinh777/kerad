@@ -1,4 +1,4 @@
-import type { ServerContext } from '@aldinh777/kerad-core';
+import type { ServerContext } from '@aldinh777/kerad';
 
 export default function (_: any, context: ServerContext) {
     const path = context.params['path'];

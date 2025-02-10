@@ -1,5 +1,5 @@
 import { computed, state } from '@aldinh777/reactive';
-import { ClassList } from '@aldinh777/kerad-core';
+import { ClassList } from '@aldinh777/kerad';
 
 export default function Style() {
     const size = state(8);
