@@ -113,11 +113,11 @@ function setListBinding(
 
 function bindClientComponent(node: HTMLElement | Document, context: Context) {
     for (const elem of selectAll('clientside[src]', node)) {
-        const src = elem.getAttribute('src');
+        let src = elem.getAttribute('src');
         if (!src) {
             continue;
         }
-        import(src.replace(/\.tsx$/, '.js')).then(async (Comp: { default: Component }) => {
+        import('/app' + src.replace(/\.client\.tsx$/, '.client.js')).then(async (Comp: { default: Component }) => {
             const componentContext = new Context();
             elem.innerHTML = '';
             renderDom(elem, await Comp.default({}, componentContext), context);

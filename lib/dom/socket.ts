@@ -5,7 +5,7 @@ import {
     updateState,
     updateElement,
     updateClassList
-} from './bindings';
+} from './bindings.ts';
 
 const PARTIAL_ENDPOINT = '/kerad/partial';
 

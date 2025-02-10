@@ -1,7 +1,7 @@
 import { ClassList } from '@aldinh777/kerad';
-import type { CSSProperties } from './styles';
+import type { CSSProperties } from './styles.ts';
 import type { State } from '@aldinh777/reactive';
-import type { GlobalEvents } from './events';
+import type { GlobalEvents } from './events.ts';
 
 type SafeLiterals<T> = T | (string & {});
 export type StateAttributes<T = {}> = { [K in keyof T]: SafeLiterals<T[K]> | State<Extract<T[K], string>> };

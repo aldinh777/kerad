@@ -1,6 +1,6 @@
 import type { ClassList } from './common';
-import type { SubscriptionData } from './utils';
-import { createIdGenerator, handleContextData, ServerContext, uniqueHandlers } from './utils';
+import type { SubscriptionData } from './utils.ts';
+import { createIdGenerator, handleContextData, ServerContext, uniqueHandlers } from './utils.ts';
 
 const classListMap = new Map<ClassList, SubscriptionData>();
 const classListIdGenerator = createIdGenerator();

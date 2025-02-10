@@ -1,4 +1,4 @@
-import { ServerContext, createIdGenerator } from './utils';
+import { ServerContext, createIdGenerator } from './utils.ts';
 
 const contextConnectionMap = new Map<string, ServerContext>();
 const connectionIdGenerator = createIdGenerator();

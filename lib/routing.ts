@@ -17,7 +17,7 @@ interface MiddlewareRules {
     error?(): Promise<Response | undefined>;
 }
 
-export const ROUTE_PATH = join(import.meta.dir, '../app/server');
+export const ROUTE_PATH = join(import.meta.dir, '../app');
 
 async function md5HashImport(filename: string) {
     const hasher = new CryptoHasher('md5');
@@ -66,7 +66,7 @@ export async function handleSubmit(formId: string, formData: Promise<FormData>) 
 
 export async function handleStaticFile(pathname: string) {
     const filename = pathname === '/' ? '/index.html' : pathname;
-    const staticFile = file(join(import.meta.dir, '../app/public', filename));
+    const staticFile = file(join(import.meta.dir, '../public', filename));
     if (await staticFile.exists()) {
         return new Response(staticFile);
     }
@@ -203,7 +203,10 @@ export async function routeUrl(req: Request, url: URL): Promise<Response> {
             if (renderOutput instanceof Response) {
                 return renderOutput;
             }
-            return new Response(renderOutput, { status: context.res.status, headers: context.res.headers as HeadersInit });
+            return new Response(renderOutput, {
+                status: context.res.status,
+                headers: context.res.headers as HeadersInit
+            });
         } catch (err) {
             const res = await errorHandler?.();
             if (res instanceof Response) {
@@ -225,6 +228,10 @@ export async function routeUrl(req: Request, url: URL): Promise<Response> {
             }
             throw err;
         }
+    } else if (notFoundPath) {
+        const notFoundPage = file(notFoundPath);
+        const page = (await notFoundPage.exists()) ? notFoundPage : null;
+        return responseFromStatus('not found', page);
     }
     return responseFromStatus('error', 'page not found');
 }

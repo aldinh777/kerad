@@ -1,6 +1,6 @@
 import type { Context } from '@aldinh777/kerad';
 import { state, computed } from '@aldinh777/reactive';
-import Counter from '../components/Counter';
+import Counter from './components/Counter.tsx';
 
 function randomItem<T>(arr: T[]) {
     return arr[Math.floor(Math.random() * arr.length)];

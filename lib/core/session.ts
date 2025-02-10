@@ -1,5 +1,5 @@
-import type { ServerContext } from './utils';
-import { createIdGenerator } from './utils';
+import type { ServerContext } from './utils.ts';
+import { createIdGenerator } from './utils.ts';
 
 const sessionIdGenerator = createIdGenerator();
 const cookieSessions = new Map<string, Map<string, any>>();

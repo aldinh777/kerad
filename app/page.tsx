@@ -1,6 +1,6 @@
 import { state } from '@aldinh777/reactive';
 import { list } from '@aldinh777/reactive/list';
-import Counter from '../components/Counter';
+import Counter from './components/Counter.tsx';
 
 const globalCounter = state(0);
 const globalTodos = list(['one', 'two', 'three']);
@@ -14,7 +14,7 @@ export default function MainPage(_: any) {
     return (
         <>
             <div>
-                <clientside src="/App.tsx">Component is Loading...</clientside>
+                <clientside src="/App.client.tsx">Component is Loading...</clientside>
             </div>
             <Counter counter={globalCounter} title="Global Counter" />
             <Counter counter={counter} title="Local Counter" />

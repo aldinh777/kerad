@@ -2,12 +2,12 @@ import { build } from 'bun';
 import { join, relative } from 'path';
 import { watch } from 'fs';
 import { readdir, rm } from 'fs/promises';
-import { pushRedirect } from './ws';
+import { pushRedirect } from './ws.ts';
 
-const SCRIPT_ENTRY = join(import.meta.dir, '../app/client/init.ts');
-const CLIENT_PATH = join(import.meta.dir, '../app/client');
+const SCRIPT_ENTRY = join(import.meta.dir, '../lib/dom/init.ts');
+const CLIENT_PATH = join(import.meta.dir, '../app');
 const OUTPUT_DIR = join(import.meta.dir, '../build');
-const BUNDLE_WATCH_DIRS = ['../app/client'];
+const BUNDLE_WATCH_DIRS = ['../app'];
 
 declare global {
     var hotBundle: boolean;
@@ -17,7 +17,7 @@ declare global {
 async function bundle(updated?: string) {
     await rm(OUTPUT_DIR, { recursive: true, force: true });
     const files = await readdir(CLIENT_PATH, { recursive: true });
-    const watched = files.filter((file) => file.endsWith('.tsx')).map((tsx) => join(CLIENT_PATH, tsx));
+    const watched = files.filter((file) => file.endsWith('.client.tsx')).map((tsx) => join(CLIENT_PATH, tsx));
 
     const res = await build({
         entrypoints: [SCRIPT_ENTRY, ...watched],
