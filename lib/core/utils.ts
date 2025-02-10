@@ -20,14 +20,16 @@ interface ResponseData {
 }
 
 export class ServerContext extends Context {
+    cid: string;
     id: string;
     url: URL;
     req: Request;
     res: ResponseData = { status: 200, headers: {} };
     params: Record<string, string | undefined>;
     session: ReturnType<typeof sessionByCookie>;
-    constructor(id: string, req: Request, url: URL, params: Record<string, string | undefined> = {}) {
+    constructor(cid: string, id: string, req: Request, url: URL, params: Record<string, string | undefined> = {}) {
         super();
+        this.cid = cid;
         this.id = id;
         this.req = req;
         this.url = url;
@@ -99,7 +101,7 @@ export function handleContextData<T>(
         map.set(item, handlers.onCreate());
     }
     const { id, connectionMap, unsubscribe } = map.get(item)!;
-    const cid = context.id;
+    const cid = context.cid;
     if (!connectionMap.has(cid)) {
         connectionMap.set(cid, new Set());
     }

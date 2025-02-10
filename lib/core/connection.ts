@@ -5,7 +5,7 @@ const connectionIdGenerator = createIdGenerator();
 
 export function registerConnection(req: Request, url: URL, params: Record<string, string> = {}) {
     const contextId = connectionIdGenerator.next();
-    const context = new ServerContext(contextId, req, url, params);
+    const context = new ServerContext(contextId, contextId, req, url, params);
     contextConnectionMap.set(contextId, context);
     return context;
 }
